@@ -1,7 +1,6 @@
 import type { WeatherData } from './weather';
 import type { RouteResult } from './routing';
 
-
 export function generateRouteTips(weather: WeatherData, route: RouteResult): string[] {
   const tips: string[] = [];
 

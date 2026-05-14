@@ -122,6 +122,26 @@ input[type="range"]::-moz-range-thumb {
   animation: pillBounce 0.28s ease-out both;
 }
 
+/* Prevent long-press context menu / text selection on interactive elements */
+button,
+a,
+input[type="range"],
+label,
+svg {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Prevent iOS zoom on input focus */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea,
+select {
+  font-size: 16px !important;
+}
+
 /* Maplibre reset */
 .maplibregl-canvas { outline: none; }
 .maplibregl-ctrl-attrib { font-size: 10px !important; }

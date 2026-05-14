@@ -1,7 +1,20 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
+  import { onDestroy } from 'svelte';
   let { open = $bindable(false), title = '', children }: { open: boolean; title?: string; children?: any } = $props();
+
+  $effect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  });
+
+  onDestroy(() => {
+    document.body.style.overflow = '';
+  });
 </script>
 
 {#if open}

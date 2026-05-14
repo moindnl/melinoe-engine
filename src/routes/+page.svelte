@@ -38,7 +38,6 @@
   let timePickerOpen = $state(false);
   let orsKey = $state('');
   let hasOrsKey = $state(false);
-  let showKeyInput = $state(false);
   let anleitungOpen = $state(false);
   let profileOpen = $state(false);
   let nameInputOpen = $state(false);
@@ -55,11 +54,7 @@
 
   onMount(() => {
     const saved = localStorage.getItem('tb_user_name');
-    if (saved) {
-      userName = saved;
-    } else {
-      setTimeout(() => nameInputOpen = true, 1200);
-    }
+    if (saved) userName = saved;
   });
 
   function saveName() {
@@ -81,7 +76,6 @@
     if (orsKey.trim()) {
       saveOrsApiKey(orsKey.trim());
       hasOrsKey = true;
-      showKeyInput = false;
       orsKey = '';
     }
   }
@@ -362,7 +356,7 @@
     </div>
 
     <!-- ── ORS API Key ── -->
-    {#if !hasOrsKey || showKeyInput}
+    {#if !hasOrsKey}
       <div class="bg-mdb-teal rounded-mdb-lg p-4 border border-mdb-hairline-dark">
         <div class="text-xs font-semibold text-mdb-on-dark-muted uppercase tracking-wider mb-1">OpenRouteService API-Key</div>
         <p class="text-xs text-mdb-on-dark-muted mb-3">
@@ -385,13 +379,6 @@
           </button>
         </div>
       </div>
-    {:else}
-      <button
-        onclick={() => showKeyInput = true}
-        class="w-full text-center text-xs text-mdb-steel py-1"
-      >
-        ORS-Key hinterlegt · ändern
-      </button>
     {/if}
 
     <!-- ── CTA ── -->

@@ -29,8 +29,7 @@ export async function fetchWeather(lat: number, lon: number, startTime: Date): P
   if (!res.ok) throw new Error(`Open-Meteo: ${res.status}`);
   const data = await res.json();
 
-  // Find index of closest hour to startTime
-  const target = startTime.toISOString().slice(0, 13); // "2024-01-15T14"
+  const target = startTime.toISOString().slice(0, 13);
   let idx = data.hourly.time.findIndex((t: string) => t.startsWith(target));
   if (idx < 0) {
     // clamp to nearest available
