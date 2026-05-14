@@ -15,6 +15,30 @@
   onDestroy(() => {
     document.body.style.overflow = '';
   });
+
+  let dragY = $state(0);
+  let dragging = $state(false);
+  let startY = 0;
+
+  function onTouchStart(e: TouchEvent) {
+    startY = e.touches[0].clientY;
+    dragging = true;
+    dragY = 0;
+  }
+
+  function onTouchMove(e: TouchEvent) {
+    if (!dragging) return;
+    const delta = e.touches[0].clientY - startY;
+    dragY = Math.max(0, delta); // only allow downward drag
+  }
+
+  function onTouchEnd() {
+    if (dragY > 120) {
+      open = false;
+    }
+    dragY = 0;
+    dragging = false;
+  }
 </script>
 
 {#if open}
@@ -30,10 +54,13 @@
   <div
     transition:fly={{ y: 400, duration: 380, easing: cubicOut }}
     class="fixed bottom-0 left-0 right-0 z-50 rounded-t-[24px] shadow-mdb-3 max-h-[80vh] flex flex-col"
-    style="background: rgba(0, 30, 43, 0.93); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding-bottom: max(env(safe-area-inset-bottom), 24px)"
+    style="background: rgba(0, 30, 43, 0.93); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding-bottom: max(env(safe-area-inset-bottom), 24px); transform: translateY({dragY}px); transition: {dragging ? 'none' : 'transform 0.3s cubic-bezier(0.32,0.72,0,1)'}"
     role="dialog"
     aria-modal="true"
     aria-labelledby="bottom-sheet-title"
+    ontouchstart={onTouchStart}
+    ontouchmove={onTouchMove}
+    ontouchend={onTouchEnd}
   >
 
     <!-- Handle + close -->

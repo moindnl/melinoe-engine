@@ -122,7 +122,7 @@ input[type="range"]::-moz-range-thumb {
   animation: pillBounce 0.28s ease-out both;
 }
 
-/* Prevent long-press context menu / text selection on interactive elements */
+/* Prevent long-press callout / text selection / double-tap zoom on interactive elements */
 button,
 a,
 input[type="range"],
@@ -130,6 +130,7 @@ label,
 svg {
   -webkit-touch-callout: none;
   user-select: none;
+  touch-action: manipulation;
 }
 
 /* Prevent iOS zoom on input focus */
