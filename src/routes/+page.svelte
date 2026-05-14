@@ -14,6 +14,41 @@
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
+  // --- Build ---
+  const VERSION = '1.0';
+  const BUILD_NAME = 'Eddy';
+  const RIDERS: Record<string, { nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
+    'Eddy': {
+      nickname:    'Der Kannibale',
+      nationality: '🇧🇪 Belgien',
+      years:       '1965 – 1978',
+      specialty:   'Allrounder',
+      bio:         'Eddy Merckx gilt als der größte Radfahrer aller Zeiten. Er dominierte den Sport in einer Weise, die kein anderer Fahrer je wiederholt hat — 525 Karrieresiege, Siege auf allen Terrains, in allen Klassikern und allen Grand Tours.',
+      wins: [
+        '5× Tour de France (1969–72, 1974)',
+        '5× Giro d\'Italia (1968, 1970, 1972–74)',
+        '1× Vuelta a España (1973)',
+        '3× Lüttich–Bastogne–Lüttich',
+        '3× Mailand–San Remo',
+        '2× Paris–Roubaix',
+        '2× Flandern-Rundfahrt',
+        '2× Weltmeister (1971, 1974)',
+        'Stundenweltrekord (1972)',
+      ],
+    },
+  };
+
+  const CHANGELOG: string[] = [
+    'Wind-optimierte Rundenplanung — 4 Kandidaten, bester Rückenwind gewinnt.',
+    'Echtzeit-Wetterdaten via Open-Meteo für die gewählte Startzeit.',
+    'Höhenprofil-Chart mit Aufstieg und Abstieg.',
+    'GPX-Export direkt in Garmin, Wahoo oder Komoot.',
+    'Benutzerdefinierter Datum- & Uhrzeitpicker.',
+    'Personalisierung mit Name und Begrüßung.',
+    'Nacht-Theme (23–5 Uhr) und Regen-Easter-Egg.',
+    'PWA — zum Homescreen hinzufügbar.',
+  ];
+
   // --- State ---
   let distanceKm = $state(60);
   let durationMin = $state(120);
@@ -39,6 +74,10 @@
   let orsKey = $state('');
   let hasOrsKey = $state(false);
   let anleitungOpen = $state(false);
+  let impressumOpen = $state(false);
+  let changelogOpen = $state(false);
+  let riderOpen = $state(false);
+  let showWhatsNew = $state(false);
   let profileOpen = $state(false);
   let nameInputOpen = $state(false);
   let userName = $state('');
@@ -52,9 +91,16 @@
     return 'Hallo';
   }
 
+  function dismissChangelog() {
+    changelogOpen = false;
+    showWhatsNew = false;
+    localStorage.setItem('tb-seen-build', BUILD_NAME);
+  }
+
   onMount(() => {
     const saved = localStorage.getItem('tb_user_name');
     if (saved) userName = saved;
+    if (localStorage.getItem('tb-seen-build') !== BUILD_NAME) showWhatsNew = true;
   });
 
   function saveName() {
@@ -225,6 +271,19 @@
       <p class="text-center text-sm text-white/60 mt-2">
         {greeting()}, <span class="text-white font-medium">{userName}</span>
       </p>
+    {/if}
+
+    <!-- What's new -->
+    {#if showWhatsNew}
+      <div class="flex justify-center mt-3">
+        <button
+          onclick={() => changelogOpen = true}
+          class="inline-flex items-center gap-1.5 text-xs text-mdb-green border border-mdb-green/30 bg-mdb-green/10 rounded-full px-3 py-1 active:opacity-70 transition-opacity"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-mdb-green animate-pulse flex-shrink-0"></span>
+          Neu in v{VERSION} · {BUILD_NAME}
+        </button>
+      </div>
     {/if}
 
   </div>
@@ -572,6 +631,23 @@
         </button>
         <span class="text-mdb-hairline-strong text-xs">|</span>
         <a href="https://moindaniel.de/" target="_blank" rel="noopener noreferrer" class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors">© {new Date().getFullYear()} Daniel Muschinski</a>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button
+          onclick={() => impressumOpen = true}
+          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
+        >
+          Impressum
+        </button>
+      </div>
+      <div class="flex justify-center mt-3">
+        <button
+          onclick={() => riderOpen = true}
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-mdb-surface border border-mdb-hairline-strong active:bg-mdb-canvas transition-colors"
+        >
+          <span class="text-xs font-medium text-mdb-steel">v{VERSION}</span>
+          <span class="w-px h-3 bg-mdb-hairline-strong"></span>
+          <span class="text-xs text-mdb-steel font-medium">{BUILD_NAME}</span>
+        </button>
       </div>
     </div>
   </div>
@@ -662,6 +738,81 @@
   bind:open={timePickerOpen}
   onconfirm={() => timePicked = true}
 />
+
+<BottomSheet bind:open={riderOpen} title={BUILD_NAME}>
+  {#if RIDERS[BUILD_NAME]}
+    {@const r = RIDERS[BUILD_NAME]}
+    <div class="space-y-5">
+      <div>
+        <p class="text-mdb-green font-semibold text-base">„{r.nickname}"</p>
+        <p class="text-xs text-white/40 mt-0.5">{r.nationality} · {r.years} · {r.specialty}</p>
+      </div>
+      <p class="text-sm text-white/70 leading-relaxed">{r.bio}</p>
+      <div>
+        <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Palmares</p>
+        <ul class="space-y-1.5">
+          {#each r.wins as win}
+            <li class="flex items-start gap-2.5">
+              <span class="text-mdb-green font-bold flex-shrink-0">·</span>
+              <span class="text-sm text-white/80">{win}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+      <button
+        onclick={() => { riderOpen = false; changelogOpen = true; }}
+        class="w-full py-3 rounded-full border border-mdb-green/30 text-mdb-green text-sm font-medium"
+      >
+        Was ist neu in v{VERSION}?
+      </button>
+    </div>
+  {/if}
+</BottomSheet>
+
+<BottomSheet bind:open={changelogOpen} title="Was ist neu">
+  <div class="space-y-4">
+    <p class="text-xs text-white/40 font-semibold uppercase tracking-wider">v{VERSION} · {BUILD_NAME}</p>
+    <ul class="space-y-3">
+      {#each CHANGELOG as item}
+        <li class="flex items-start gap-3">
+          <span class="text-mdb-green font-bold flex-shrink-0 mt-0.5">·</span>
+          <span class="text-sm text-white/80 leading-snug">{item}</span>
+        </li>
+      {/each}
+    </ul>
+    <button
+      onclick={dismissChangelog}
+      class="w-full py-3.5 rounded-full bg-mdb-green text-mdb-ink font-semibold text-sm mt-2"
+    >
+      Verstanden
+    </button>
+  </div>
+</BottomSheet>
+
+<BottomSheet bind:open={impressumOpen} title="Impressum">
+  <div class="space-y-4 text-sm text-white/70">
+    <div>
+      <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1">Angaben gemäß § 5 TMG</p>
+      <p class="text-white">Daniel Muschinski</p>
+      <p>Freudenbergstraße 4</p>
+      <p>28213 Bremen</p>
+    </div>
+    <div>
+      <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1">Kontakt</p>
+      <a href="mailto:moindnl@proton.me" class="text-mdb-green">moindnl@proton.me</a>
+    </div>
+    <div>
+      <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1">Externe Dienste</p>
+      <p>Diese App nutzt folgende externe APIs:</p>
+      <ul class="mt-1 space-y-1 list-disc list-inside">
+        <li><span class="text-white">Open-Meteo</span> — Wetterdaten (GPS-Koordinaten, Zeitstempel)</li>
+        <li><span class="text-white">OpenRouteService</span> — Routenberechnung (GPS-Koordinaten)</li>
+        <li><span class="text-white">OpenFreeMap</span> — Kartendarstellung</li>
+      </ul>
+      <p class="mt-2 text-white/50 text-xs">Es werden keine personenbezogenen Daten gespeichert oder weitergegeben. Name und API-Key werden ausschließlich lokal auf dem Gerät gespeichert.</p>
+    </div>
+  </div>
+</BottomSheet>
 
 <BottomSheet bind:open={anleitungOpen} title="Anleitung">
   <ul class="space-y-3 text-sm text-white/70">
