@@ -20,7 +20,7 @@
   const RIDERS: Record<string, { nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
       nickname:    'Der Kannibale',
-      nationality: '🇧🇪 Belgien',
+      nationality: 'Belgien',
       years:       '1965 – 1978',
       specialty:   'Allrounder',
       bio:         'Eddy Merckx gilt als der größte Radfahrer aller Zeiten. Er dominierte den Sport in einer Weise, die kein anderer Fahrer je wiederholt hat — 525 Karrieresiege, Siege auf allen Terrains, in allen Klassikern und allen Grand Tours.',
@@ -39,7 +39,7 @@
   };
 
   const CHANGELOG: string[] = [
-    'Wind-optimierte Rundenplanung — 4 Kandidaten, bester Rückenwind gewinnt.',
+    'Wind-optimierte Rundenplanung — 5 Routen-Kandidaten, bester Rückenwind gewinnt.',
     'Echtzeit-Wetterdaten via Open-Meteo für die gewählte Startzeit.',
     'Höhenprofil-Chart mit Aufstieg und Abstieg.',
     'GPX-Export direkt in Garmin, Wahoo oder Komoot.',
@@ -72,12 +72,11 @@
   let timePicked = $state(false);
   let timePickerOpen = $state(false);
   let orsKey = $state('');
-  let hasOrsKey = $state(false);
+  let hasOrsKey = $state(!!getOrsApiKey());
   let anleitungOpen = $state(false);
   let impressumOpen = $state(false);
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
-  let showWhatsNew = $state(false);
   let profileOpen = $state(false);
   let nameInputOpen = $state(false);
   let userName = $state('');
@@ -91,16 +90,9 @@
     return 'Hallo';
   }
 
-  function dismissChangelog() {
-    changelogOpen = false;
-    showWhatsNew = false;
-    localStorage.setItem('tb-seen-build', BUILD_NAME);
-  }
-
   onMount(() => {
     const saved = localStorage.getItem('tb_user_name');
     if (saved) userName = saved;
-    if (localStorage.getItem('tb-seen-build') !== BUILD_NAME) showWhatsNew = true;
   });
 
   function saveName() {
@@ -112,11 +104,6 @@
     nameInputOpen = false;
     profileOpen = false;
   }
-
-  $effect(() => {
-    hasOrsKey = !!getOrsApiKey();
-  });
-
 
   function submitKey() {
     if (orsKey.trim()) {
@@ -183,7 +170,7 @@
 
   const avgSpeed = $derived(route ? Math.round((route.distanceKm / route.durationMin) * 60 * 10) / 10 : 0);
   const arrowRot = $derived(weather ? (weather.windDirection + 180) % 360 : 0);
-  const isNight = $derived((() => { const h = new Date().getHours(); return h >= 23 || h < 5; })());
+  const isNight = $derived(new Date().getHours() >= 23 || new Date().getHours() < 5);
 
   const stars = [
     { top: '12%', left: '7%',  size: 2, dur: '2.1s', delay: '0s'    },
@@ -271,19 +258,6 @@
       <p class="text-center text-sm text-white/60 mt-2">
         {greeting()}, <span class="text-white font-medium">{userName}</span>
       </p>
-    {/if}
-
-    <!-- What's new -->
-    {#if showWhatsNew}
-      <div class="flex justify-center mt-3">
-        <button
-          onclick={() => changelogOpen = true}
-          class="inline-flex items-center gap-1.5 text-xs text-mdb-green border border-mdb-green/30 bg-mdb-green/10 rounded-full px-3 py-1 active:opacity-70 transition-opacity"
-        >
-          <span class="w-1.5 h-1.5 rounded-full bg-mdb-green animate-pulse flex-shrink-0"></span>
-          Neu in v{VERSION} · {BUILD_NAME}
-        </button>
-      </div>
     {/if}
 
   </div>
@@ -676,7 +650,7 @@
     >
       Los geht's
     </button>
-    <button onclick={() => nameInputOpen = false} class="w-full py-2 text-white/40 text-sm">
+    <button onclick={() => nameInputOpen = false} class="w-full py-2 text-white/60 text-sm">
       Überspringen
     </button>
   </div>
@@ -745,16 +719,16 @@
     <div class="space-y-5">
       <div>
         <p class="text-mdb-green font-semibold text-base">„{r.nickname}"</p>
-        <p class="text-xs text-white/40 mt-0.5">{r.nationality} · {r.years} · {r.specialty}</p>
+        <p class="text-xs text-white/60 mt-0.5">{r.nationality} · {r.years} · {r.specialty}</p>
       </div>
-      <p class="text-sm text-white/70 leading-relaxed">{r.bio}</p>
+      <p class="text-sm text-white/85 leading-relaxed">{r.bio}</p>
       <div>
-        <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Palmares</p>
+        <p class="text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Palmares</p>
         <ul class="space-y-1.5">
           {#each r.wins as win}
             <li class="flex items-start gap-2.5">
               <span class="text-mdb-green font-bold flex-shrink-0">·</span>
-              <span class="text-sm text-white/80">{win}</span>
+              <span class="text-sm text-white/85">{win}</span>
             </li>
           {/each}
         </ul>
@@ -771,7 +745,7 @@
 
 <BottomSheet bind:open={changelogOpen} title="Was ist neu">
   <div class="space-y-4">
-    <p class="text-xs text-white/40 font-semibold uppercase tracking-wider">v{VERSION} · {BUILD_NAME}</p>
+    <p class="text-xs text-white/60 font-semibold uppercase tracking-wider">v{VERSION} · {BUILD_NAME}</p>
     <ul class="space-y-3">
       {#each CHANGELOG as item}
         <li class="flex items-start gap-3">
@@ -781,7 +755,7 @@
       {/each}
     </ul>
     <button
-      onclick={dismissChangelog}
+      onclick={() => changelogOpen = false}
       class="w-full py-3.5 rounded-full bg-mdb-green text-mdb-ink font-semibold text-sm mt-2"
     >
       Verstanden
@@ -792,17 +766,17 @@
 <BottomSheet bind:open={impressumOpen} title="Impressum">
   <div class="space-y-4 text-sm text-white/70">
     <div>
-      <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1">Angaben gemäß § 5 TMG</p>
+      <p class="text-xs font-semibold text-white/60 uppercase tracking-wider mb-1">Angaben gemäß § 5 TMG</p>
       <p class="text-white">Daniel Muschinski</p>
       <p>Freudenbergstraße 4</p>
       <p>28213 Bremen</p>
     </div>
     <div>
-      <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1">Kontakt</p>
+      <p class="text-xs font-semibold text-white/60 uppercase tracking-wider mb-1">Kontakt</p>
       <a href="mailto:moindnl@proton.me" class="text-mdb-green">moindnl@proton.me</a>
     </div>
     <div>
-      <p class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1">Externe Dienste</p>
+      <p class="text-xs font-semibold text-white/60 uppercase tracking-wider mb-1">Externe Dienste</p>
       <p>Diese App nutzt folgende externe APIs:</p>
       <ul class="mt-1 space-y-1 list-disc list-inside">
         <li><span class="text-white">Open-Meteo</span> — Wetterdaten (GPS-Koordinaten, Zeitstempel)</li>

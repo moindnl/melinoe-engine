@@ -103,23 +103,33 @@ function scoreRouteByWind(coords: RoutePoint[], windFromDeg: number): number {
   return totalLen > 0 ? ((score / totalLen + 1) / 2) * 100 : 50; // normalise 0-100
 }
 
-// ── ORS API call ─────────────────────────────────────────────────────────────
+// ── ORS data type ─────────────────────────────────────────────────────────────
 
 interface OrsRouteData {
   coords: RoutePoint[];
   elevations: number[]; // meters, one per coord
 }
 
-async function fetchOrsRoute(
+// ── Round-trip with wind optimisation ────────────────────────────────────────
+//
+// Strategy: request 5 ORS round-trips with different seeds from the same
+// origin, score each by wind alignment, return the best one.
+// ORS round_trip option generates genuine loops (not back-and-forth).
+
+function assertFinite(label: string, v: number) {
+  if (!Number.isFinite(v)) throw new Error(`Koordinate ungültig: ${label} = ${v}`);
+}
+
+async function fetchOrsRoundTrip(
   apiKey: string,
   profile: string,
-  coordinates: [number, number][],
-  gradient: GradientLevel = 'any',
+  origin: RoutePoint,
+  lengthM: number,
+  seed: number,
+  gradient: GradientLevel,
 ): Promise<OrsRouteData> {
-  for (const [lon, lat] of coordinates) {
-    if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
-      throw new Error(`Ungültige Koordinate: lon=${lon}, lat=${lat}`);
-    }
+  if (!Number.isFinite(origin.lon) || !Number.isFinite(origin.lat)) {
+    throw new Error(`Ungültige Koordinate: lon=${origin.lon}, lat=${origin.lat}`);
   }
 
   const profilesToTry = profile === 'cycling-regular'
@@ -127,7 +137,13 @@ async function fetchOrsRoute(
     : [profile, 'cycling-regular'];
 
   const difficulty = steepnessDifficulty[gradient];
-  const body: Record<string, unknown> = { coordinates, elevation: true };
+  const body: Record<string, unknown> = {
+    coordinates: [[origin.lon, origin.lat]],
+    elevation: true,
+    options: {
+      round_trip: { length: lengthM, points: 3, seed },
+    },
+  };
   if (difficulty !== null) {
     body.profile_params = { weightings: { steepness_difficulty: difficulty } };
   }
@@ -144,7 +160,7 @@ async function fetchOrsRoute(
       body: JSON.stringify(body),
     });
 
-    if (res.status === 404) continue; // profile not available, try next
+    if (res.status === 404) continue;
 
     if (!res.ok) {
       const text = await res.text();
@@ -163,25 +179,6 @@ async function fetchOrsRoute(
   throw new Error(`ORS: kein Profil verfügbar (${profilesToTry.join(', ')})`);
 }
 
-// ── Round-trip with wind optimisation ────────────────────────────────────────
-//
-// Strategy: generate 4 candidate midpoints at ~targetDistance/4 radius in
-// N/E/S/W directions, route origin→mid→origin for each, score by wind,
-// return the best one.
-
-function candidateMidpoint(origin: RoutePoint, radiusKm: number, bearingDeg: number): RoutePoint {
-  const r = radiusKm / 111;
-  const rad = (bearingDeg * Math.PI) / 180;
-  return {
-    lat: origin.lat + Math.cos(rad) * r,
-    lon: origin.lon + Math.sin(rad) * r / Math.cos((origin.lat * Math.PI) / 180),
-  };
-}
-
-function assertFinite(label: string, v: number) {
-  if (!Number.isFinite(v)) throw new Error(`Koordinate ungültig: ${label} = ${v}`);
-}
-
 async function generateWithOrs(
   apiKey: string,
   origin: RoutePoint,
@@ -196,21 +193,11 @@ async function generateWithOrs(
   assertFinite('targetDistanceKm', targetDistanceKm);
 
   const profile = orsProfile[surface];
-  const midRadius = Math.max(targetDistanceKm / 4, 1); // min 1 km radius
-  const candidateBearings = [0, 90, 180, 270]; // N E S W
+  const lengthM = targetDistanceKm * 1000;
+  const seeds = [1, 2, 3, 4, 5];
 
   const results = await Promise.allSettled(
-    candidateBearings.map(async (bearing) => {
-      const mid = candidateMidpoint(origin, midRadius, bearing);
-      assertFinite('mid.lat', mid.lat);
-      assertFinite('mid.lon', mid.lon);
-      const coords: [number, number][] = [
-        [origin.lon, origin.lat],
-        [mid.lon, mid.lat],
-        [origin.lon, origin.lat],
-      ];
-      return fetchOrsRoute(apiKey, profile, coords, gradient);
-    })
+    seeds.map(seed => fetchOrsRoundTrip(apiKey, profile, origin, lengthM, seed, gradient))
   );
 
   // Collect successful routes

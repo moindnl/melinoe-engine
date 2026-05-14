@@ -67,7 +67,7 @@
           <span class="text-base font-bold {sameDay(day, selected) ? 'text-mdb-ink' : 'text-white'}">
             {day.getDate()}
           </span>
-          <span class="text-[10px] {sameDay(day, selected) ? 'text-mdb-ink/60' : 'text-white/40'}">
+          <span class="text-[10px] {sameDay(day, selected) ? 'text-mdb-ink/70' : 'text-white/60'}">
             {monthNames[day.getMonth()]}
           </span>
         </button>
@@ -102,7 +102,7 @@
         </button>
       </div>
 
-      <span class="text-4xl font-bold text-white/40 mb-1">:</span>
+      <span class="text-4xl font-bold text-white/60 mb-1">:</span>
 
       <!-- Minute -->
       <div class="flex flex-col items-center gap-2">
