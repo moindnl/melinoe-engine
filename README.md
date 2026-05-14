@@ -1,42 +1,41 @@
-# sv
+# melinoe-engine
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+> **TrailBlazer Ultra** — wind-optimised road cycling route planner
 
-## Creating a project
+Mobile-first PWA built with SvelteKit + Svelte 5, MapLibre GL, OpenRouteService, and Open-Meteo.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@0.15.3 create --template minimal --types ts --install npm .
-```
+- GPS-based location detection
+- Wind-optimised round-trip route generation (4 candidate directions, best wind score wins)
+- Real weather data at start time via Open-Meteo
+- Elevation profile chart
+- GPX export (Garmin, Wahoo, Komoot compatible)
+- Custom date/time picker
+- User personalisation (name + greeting)
+- Night sky & rain easter eggs
+- PWA / Add to Home Screen
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
+pnpm dev
 ```
 
 ## Building
 
-To create a production version of your app:
-
 ```sh
-npm run build
+pnpm build
 ```
 
-You can preview the production build with `npm run preview`.
+## API Key
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Routing uses [OpenRouteService](https://openrouteservice.org). Enter your free API key in the app UI — stored in `localStorage`. Without a key the app falls back to mock routes.
+
+Copy `.env.example` to `.env` to set the key at build time instead:
+
+```sh
+cp .env.example .env
+# edit VITE_ORS_API_KEY=your_key_here
+```
