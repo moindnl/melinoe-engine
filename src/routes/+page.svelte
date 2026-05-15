@@ -18,7 +18,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.2';
+  const VERSION = '1.3';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -42,8 +42,8 @@
   };
 
   const CHANGELOG: string[] = [
-    'Dauerbrechnung korrigiert — angezeigte Zeit entspricht jetzt exakt Distanz ÷ eingestellter Geschwindigkeit.',
-    'Nutrition-Tool — direkter Link zur Verpflegungsplanung im Ergebnisbereich.',
+    'Dauer basiert jetzt auf der echten Routendistanz ÷ eingestellter Durchschnittsgeschwindigkeit — keine Schätzfaktoren mehr.',
+    '78 km bei 30 km/h = genau 2:36 h. Immer.',
   ];
 
   // --- State ---
@@ -72,11 +72,7 @@
       ? distanceKm
       : Math.round(userSpeeds[surface] * durationMin / 60)
   );
-  const targetDurationMin = $derived(
-    planMode === 'duration'
-      ? durationMin
-      : Math.round(distanceKm / userSpeeds[surface] * 60)
-  );
+
   let location = $state<{ lat: number; lon: number } | null>(null);
   let locating = $state(false);
   let locError = $state('');
@@ -188,7 +184,7 @@
     loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
-      const routes = await generateOptimalLoop(location, targetDistanceKm, targetDurationMin, w.windDirection, surface, gradient, 0);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0);
       weather = w; allRoutes = routes; routeIndex = 0;
       tips = generateRouteTips(w, routes[0]);
       setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -204,7 +200,7 @@
     loadingMore = true; calcError = '';
     try {
       const offset = bearingOffset + 22.5;
-      const routes = await generateOptimalLoop(location, targetDistanceKm, targetDurationMin, weather.windDirection, surface, gradient, offset);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset);
       bearingOffset = offset;
       allRoutes = [...allRoutes, ...routes];
     } catch (e) {
@@ -271,7 +267,6 @@
   const conditionLabel: Record<string, string> = { sunny: 'Sonnig', cloudy: 'Bewölkt', rainy: 'Regen', windy: 'Windig' };
   const conditionColor: Record<string, string> = { sunny: '#fa6e39', cloudy: '#5c6c7a', rainy: '#00ed64', windy: '#7b3ff2' };
 
-  // loading steps animation
   const steps = ['Wetterdaten…', 'Windrichtung…', 'Route berechnet…', 'Finalisieren…'];
   let stepIdx = $state(0);
   $effect(() => {

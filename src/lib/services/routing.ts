@@ -186,7 +186,7 @@ async function fetchOrsViaWaypoints(
 function orsDataToResult(
   r: OrsRouteData,
   windScore: number,
-  targetDurationMin: number,
+  speedKmh: number,
   surface: SurfaceType,
   gradient: GradientLevel,
 ): RouteResult {
@@ -217,7 +217,7 @@ function orsDataToResult(
     coordinates: r.coords,
     elevationProfile,
     distanceKm,
-    durationMin: targetDurationMin,
+    durationMin: Math.round(distanceKm / speedKmh * 60),
     elevationGain: Math.min(Math.round(elevationGain), maxEle),
     elevationLoss: Math.min(Math.round(elevationLoss), maxEle),
     windScore: Math.round(windScore),
@@ -231,7 +231,7 @@ async function generateWithOrs(
   apiKey: string,
   origin: RoutePoint,
   targetDistanceKm: number,
-  targetDurationMin: number,
+  speedKmh: number,
   windDirection: number,
   surface: SurfaceType,
   gradient: GradientLevel,
@@ -281,7 +281,7 @@ async function generateWithOrs(
     .map(r => ({ data: r, score: scoreRouteByWind(r.coords, windDirection) }))
     .sort((a, b) => b.score - a.score);
 
-  return scored.map(s => orsDataToResult(s.data, s.score, targetDurationMin, surface, gradient));
+  return scored.map(s => orsDataToResult(s.data, s.score, speedKmh, surface, gradient));
 }
 
 function buildProfile(
@@ -312,7 +312,7 @@ function buildProfile(
 export async function generateOptimalLoop(
   origin: RoutePoint,
   targetDistanceKm: number,
-  targetDurationMin: number,
+  speedKmh: number,
   windDirection: number,
   surface: SurfaceType = 'road',
   gradient: GradientLevel = 'any',
@@ -322,5 +322,5 @@ export async function generateOptimalLoop(
   if (!apiKey) {
     throw new Error('Kein ORS-API-Key hinterlegt. Bitte in den Einstellungen eintragen.');
   }
-  return generateWithOrs(apiKey, origin, targetDistanceKm, targetDurationMin, windDirection, surface, gradient, bearingOffset);
+  return generateWithOrs(apiKey, origin, targetDistanceKm, speedKmh, windDirection, surface, gradient, bearingOffset);
 }
