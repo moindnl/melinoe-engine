@@ -68,8 +68,8 @@
   >
     <defs>
       <linearGradient id="ele-fill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#00ed64" stop-opacity="0.25" />
-        <stop offset="100%" stop-color="#00ed64" stop-opacity="0.03" />
+        <stop offset="0%" stop-color="#00ed64" stop-opacity="0.45" />
+        <stop offset="100%" stop-color="#00ed64" stop-opacity="0" />
       </linearGradient>
     </defs>
 

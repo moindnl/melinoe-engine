@@ -67,19 +67,9 @@ input[type="range"]::-moz-range-thumb {
   animation: fadeSlideIn 0.32s ease-out both;
 }
 
-@keyframes boltPulse {
-  0%, 100% { transform: scale(1);    opacity: 1; }
-  50%       { transform: scale(1.55); opacity: 0.75; }
-}
-
 @keyframes boltGlow {
   0%, 100% { filter: drop-shadow(0 0 3px #00ed64) drop-shadow(0 0 6px #00ed64); opacity: 0.9; }
   50%       { filter: drop-shadow(0 0 8px #00ed64) drop-shadow(0 0 18px #00ed64); opacity: 1; }
-}
-
-.bolt-pulse {
-  animation: boltPulse 1.4s ease-in-out infinite;
-  transform-origin: center;
 }
 
 .bolt-glow {

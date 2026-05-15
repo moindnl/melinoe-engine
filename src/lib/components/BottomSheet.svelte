@@ -19,6 +19,7 @@
   let dragY = $state(0);
   let dragging = $state(false);
   let startY = 0;
+  let scrollEl: HTMLDivElement;
 
   function onTouchStart(e: TouchEvent) {
     startY = e.touches[0].clientY;
@@ -29,7 +30,12 @@
   function onTouchMove(e: TouchEvent) {
     if (!dragging) return;
     const delta = e.touches[0].clientY - startY;
-    dragY = Math.max(0, delta); // only allow downward drag
+    // only drag-to-close when content is scrolled to top and pulling down
+    if (delta > 0 && scrollEl?.scrollTop === 0) {
+      dragY = delta;
+    } else {
+      dragY = 0;
+    }
   }
 
   function onTouchEnd() {
@@ -81,7 +87,7 @@
       </div>
     {/if}
 
-    <div class="overflow-y-auto px-5 py-4">
+    <div bind:this={scrollEl} class="overflow-y-auto px-5 py-4">
       {@render children()}
     </div>
   </div>
