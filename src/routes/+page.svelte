@@ -216,7 +216,9 @@
     if (savedSession) {
       try {
         const s = JSON.parse(savedSession);
-        if (s.allRoutes?.length) {
+        const isValidRoute = (r: RouteResult) =>
+          r?.elevationGain != null && r?.elevationLoss != null && Array.isArray(r?.elevationProfile);
+        if (s.allRoutes?.length && s.allRoutes.every(isValidRoute)) {
           allRoutes = s.allRoutes;
           weather = s.weather;
           location = s.location;
@@ -880,11 +882,11 @@
         </div>
 
         <!-- Elevation Chart -->
-        {#if route.elevationProfile.length > 1}
+        {#if route.elevationProfile?.length > 1}
           <ElevationChart
             profile={route.elevationProfile}
-            gain={route.elevationGain}
-            loss={route.elevationLoss}
+            gain={route.elevationGain ?? 0}
+            loss={route.elevationLoss ?? 0}
           />
         {/if}
 
