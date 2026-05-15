@@ -1,6 +1,6 @@
 # TrailBlazer Ultra
 
-Wind-optimised road cycling route planner — mobile-first PWA.
+Wind-optimised road cycling route planner. Mobile-first PWA.
 
 ## About
 
