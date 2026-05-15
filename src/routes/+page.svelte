@@ -6,7 +6,7 @@
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
-    Map, Bookmark, MapPin, Globe, WifiOff, Search
+    Map, Bookmark, MapPin, Globe, WifiOff, Search, BarChart2, Star
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -19,7 +19,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.5';
+  const VERSION = '1.6';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -44,6 +44,7 @@
   };
 
   const CHANGELOG: string[] = [
+    'Routenvergleich: alle berechneten Routen sortiert nach Rückenwind — Empfehlung auf einen Blick.',
     'Adresssuche: Startpunkt per Adresseingabe setzen — als Alternative zu GPS.',
     'Wetter und Wind werden jetzt für die geplante Startzeit abgerufen — nicht für den aktuellen Moment.',
     'Roadmap: geplante Features direkt in der App einsehbar (Footer → Roadmap).',
@@ -165,6 +166,7 @@
   let riderOpen = $state(false);
   let roadmapOpen = $state(false);
   let profileOpen = $state(false);
+  let compareOpen = $state(false);
   let userName = $state('');
   let nameInput = $state('');
 
@@ -216,8 +218,6 @@
     if (savedSession) {
       try {
         const s = JSON.parse(savedSession);
-        const isValidRoute = (r: RouteResult) =>
-          r?.elevationGain != null && r?.elevationLoss != null && Array.isArray(r?.elevationProfile);
         if (s.allRoutes?.length && s.allRoutes.every(isValidRoute)) {
           allRoutes = s.allRoutes;
           weather = s.weather;
@@ -268,6 +268,27 @@
   function fmt(min: number) {
     const h = Math.floor(min / 60), m = min % 60;
     return h > 0 ? `${h}:${m.toString().padStart(2, '0')} h` : `${m} min`;
+  }
+
+  function windArrow(score: number): string {
+    if (score >= 80) return '↑↑';
+    if (score >= 60) return '↑';
+    if (score >= 40) return '→';
+    return '↓';
+  }
+
+  function isValidRoute(r: RouteResult): boolean {
+    return (
+      r != null &&
+      Number.isFinite(r.elevationGain) &&
+      Number.isFinite(r.elevationLoss) &&
+      Number.isFinite(r.distanceKm) &&
+      Number.isFinite(r.durationMin) &&
+      Number.isFinite(r.windScore) &&
+      Number.isFinite(r.startBearing) &&
+      Array.isArray(r.elevationProfile) &&
+      Array.isArray(r.elevations)
+    );
   }
 
   async function locateMe() {
@@ -825,6 +846,16 @@
             </div>
           </div>
 
+          {#if allRoutes.length > 1}
+            <button
+              onclick={() => compareOpen = true}
+              aria-label="Routen vergleichen"
+              class="w-9 h-9 rounded-full border border-mdb-hairline flex items-center justify-center text-mdb-steel active:scale-95 transition-transform"
+            >
+              <BarChart2 size={16} />
+            </button>
+          {/if}
+
           <button
             onclick={() => { if (routeIndex < allRoutes.length - 1) { slideDir = 1; routeIndex++; } }}
             disabled={routeIndex === allRoutes.length - 1}
@@ -885,8 +916,8 @@
         {#if route.elevationProfile?.length > 1}
           <ElevationChart
             profile={route.elevationProfile}
-            gain={route.elevationGain ?? 0}
-            loss={route.elevationLoss ?? 0}
+            gain={Number.isFinite(route.elevationGain) ? route.elevationGain : 0}
+            loss={Number.isFinite(route.elevationLoss) ? route.elevationLoss : 0}
           />
         {/if}
 
@@ -1126,7 +1157,7 @@
       />
       {#if userName}
         <button onclick={deleteName} aria-label="Name löschen"
-          class="w-9 h-9 flex items-center justify-center text-white/40 active:text-red-400 transition-colors flex-shrink-0">
+          class="w-9 h-9 flex items-center justify-center text-white/60 active:text-red-400 transition-colors flex-shrink-0">
           <X size={15} />
         </button>
       {/if}
@@ -1275,6 +1306,53 @@
   </div>
 </BottomSheet>
 
+<BottomSheet bind:open={compareOpen} title="Routen vergleichen">
+  {#if allRoutes.length > 1}
+    {@const sorted = [...allRoutes]
+      .map((r, i) => ({ r, i }))
+      .sort((a, b) => b.r.windScore - a.r.windScore)}
+    <p class="text-xs text-white/60 mb-3">Sortiert nach Rückenwind auf dem Rückweg — je höher, desto angenehmer die Heimfahrt.</p>
+    <div class="space-y-2">
+      {#each sorted as { r, i }, rank}
+        <button
+          onclick={() => { slideDir = i > routeIndex ? 1 : -1; routeIndex = i; compareOpen = false; }}
+          class="w-full text-left rounded-2xl border transition-colors active:scale-[0.98] active:transition-none
+            {rank === 0
+              ? 'border-mdb-green bg-mdb-green/10'
+              : 'border-white/12 bg-white/4'}"
+        >
+          <div class="px-4 py-3">
+            <!-- Top row: rank + wind score -->
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                {#if rank === 0}
+                  <Star size={13} color="#00ed64" />
+                  <span class="text-xs font-semibold text-mdb-green">Empfehlung</span>
+                {:else}
+                  <span class="text-xs text-white/60">#{rank + 1}</span>
+                {/if}
+              </div>
+              <span class="text-sm font-bold {rank === 0 ? 'text-mdb-green' : 'text-white/70'}">
+                {windArrow(r.windScore)} {r.windScore}%
+              </span>
+            </div>
+            <!-- Stats row -->
+            <div class="flex items-center gap-4 text-xs text-white/70">
+              <span>{r.distanceKm} km</span>
+              <span class="text-white/30">·</span>
+              <span>{fmt(r.durationMin)}</span>
+              <span class="text-white/30">·</span>
+              <span>{r.elevationGain} Hm</span>
+              <span class="text-white/30">·</span>
+              <span>Start {windDirectionLabel(r.startBearing)}</span>
+            </div>
+          </div>
+        </button>
+      {/each}
+    </div>
+  {/if}
+</BottomSheet>
+
 <BottomSheet bind:open={roadmapOpen} title="Roadmap">
   <div class="space-y-2">
     <p class="text-xs text-white/60 mb-3">Was als nächstes kommt — keine Versprechen, keine Deadlines.</p>
@@ -1318,7 +1396,7 @@
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">5</span>
-      <p><strong class="text-white">Route berechnen</strong> — Wind-optimierte Schleife mit Wetter, Höhenprofil und Tipps. Zwischen mehreren Routen wechseln oder weitere laden.</p>
+      <p><strong class="text-white">Route berechnen</strong> — Wind-optimierte Schleife mit Wetter, Höhenprofil und Tipps. Zwischen Routen wechseln, weitere laden oder per Vergleichs-Icon alle Routen nach Rückenwind sortiert sehen.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">6</span>
