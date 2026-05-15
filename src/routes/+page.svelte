@@ -6,7 +6,7 @@
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
-    Map, Bookmark, MapPin, Globe, BellRing, WifiOff
+    Map, Bookmark, MapPin, Globe, WifiOff, Search
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -19,7 +19,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.4';
+  const VERSION = '1.5';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -44,6 +44,7 @@
   };
 
   const CHANGELOG: string[] = [
+    'Adresssuche: Startpunkt per Adresseingabe setzen — als Alternative zu GPS.',
     'Wetter und Wind werden jetzt für die geplante Startzeit abgerufen — nicht für den aktuellen Moment.',
     'Roadmap: geplante Features direkt in der App einsehbar (Footer → Roadmap).',
     'Barrierefreiheit: Kontraste und Schriftgrößen auf WCAG 2.1 AA angehoben.',
@@ -77,8 +78,70 @@
   );
 
   let location = $state<{ lat: number; lon: number } | null>(null);
+  let locationLabel = $state<string | null>(null);
   let locating = $state(false);
   let locError = $state('');
+
+  // --- Address search ---
+  interface NominatimAddress {
+    road?: string; house_number?: string;
+    city?: string; town?: string; village?: string; suburb?: string;
+    county?: string; state?: string;
+  }
+  interface NominatimResult {
+    lat: string; lon: string;
+    display_name: string;
+    address?: NominatimAddress;
+  }
+  let searchQuery = $state('');
+  let searchResults = $state<NominatimResult[]>([]);
+  let searchLoading = $state(false);
+  let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+
+  function formatNominatimLabel(r: NominatimResult): string {
+    const a = r.address;
+    if (!a) return r.display_name.split(',').slice(0, 2).join(', ');
+    const street = a.road
+      ? (a.house_number ? `${a.road} ${a.house_number}` : a.road)
+      : null;
+    const city = a.city || a.town || a.village || a.suburb || a.county;
+    if (street && city) return `${street}, ${city}`;
+    if (city) return city;
+    if (street) return street;
+    return r.display_name.split(',').slice(0, 2).join(', ');
+  }
+
+  function onSearchInput() {
+    if (searchDebounce) clearTimeout(searchDebounce);
+    const q = searchQuery.trim();
+    if (q.length < 3) { searchResults = []; return; }
+    searchDebounce = setTimeout(async () => {
+      searchLoading = true;
+      try {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('q', q);
+        url.searchParams.set('format', 'json');
+        url.searchParams.set('limit', '5');
+        url.searchParams.set('addressdetails', '1');
+        url.searchParams.set('accept-language', 'de');
+        const res = await fetch(url.toString(), {
+          headers: { 'User-Agent': 'TrailBlazerUltra/1.4' }
+        });
+        searchResults = await res.json();
+      } catch { searchResults = []; }
+      finally { searchLoading = false; }
+    }, 300);
+  }
+
+  function selectSearchResult(r: NominatimResult) {
+    location = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
+    locationLabel = formatNominatimLabel(r);
+    searchQuery = '';
+    searchResults = [];
+    locError = '';
+  }
+
+  // --- Route state ---
   let loading = $state(false);
   let calcError = $state('');
   let weather = $state<WeatherData | null>(null);
@@ -87,8 +150,11 @@
   let loadingMore = $state(false);
   let bearingOffset = $state(0);
   let slideDir = $state(1);
+  let shared = $state(false);
   const route = $derived(allRoutes[routeIndex] ?? null);
   let tips = $state<string[]>([]);
+
+  // --- UI state ---
   let timePicked = $state(false);
   let timePickerOpen = $state(false);
   let orsKey = $state('');
@@ -209,6 +275,7 @@
         navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 })
       );
       location = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      locationLabel = null;
     } catch {
       locError = 'GPS nicht verfügbar.';
     } finally {
@@ -248,8 +315,6 @@
       loadingMore = false;
     }
   }
-
-  let shared = $state(false);
 
   async function shareRoute() {
     if (!route) return;
@@ -452,8 +517,10 @@
   <div class="px-4 py-5 space-y-3 max-w-lg mx-auto">
 
     <!-- ── Standort + Startzeit ── -->
-    <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline overflow-hidden">
-      <div class="flex items-center">
+    <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline relative">
+
+      <!-- GPS + Zeit row -->
+      <div class="flex items-center overflow-hidden rounded-t-mdb-lg">
 
         <!-- GPS area -->
         <button
@@ -466,24 +533,24 @@
             {location ? 'bg-mdb-surface-feature border-mdb-green' : 'bg-mdb-surface border-mdb-hairline-strong'}">
             {#if locating}
               <Loader size={16} color={location ? '#00684a' : '#3d4f5b'} class="animate-spin" />
+            {:else if locationLabel}
+              <MapPin size={16} color="#00684a" />
             {:else}
               <Navigation size={16} color={location ? '#00684a' : '#3d4f5b'} />
             {/if}
           </div>
           <div class="text-left min-w-0">
+            <p class="text-xs font-semibold {location ? 'text-mdb-green-dark' : 'text-mdb-ink'}">{locationLabel ? 'Startpunkt' : 'GPS-Standort'}</p>
             {#if locating}
               <p class="text-xs text-mdb-steel">Wird ermittelt…</p>
+            {:else if location && locationLabel}
+              <p class="text-xs text-mdb-green-dark truncate">{locationLabel}</p>
             {:else if location}
-              <p class="text-xs font-medium text-mdb-green-dark tabular-nums truncate">
-                {location.lat.toFixed(5)}°
-              </p>
-              <p class="text-xs font-medium text-mdb-green-dark tabular-nums truncate">
-                {location.lon.toFixed(5)}°
+              <p class="text-xs text-mdb-green-dark tabular-nums truncate">
+                {location.lat.toFixed(4)}° · {location.lon.toFixed(4)}°
               </p>
             {:else if locError}
               <p class="text-xs text-red-500">{locError}</p>
-            {:else}
-              <p class="text-xs text-mdb-steel">Kein Standort</p>
             {/if}
           </div>
         </button>
@@ -512,6 +579,51 @@
         </button>
 
       </div>
+
+      <!-- Address search row -->
+      <div class="border-t border-mdb-hairline flex items-center gap-2 px-4 py-2.5">
+        {#if searchLoading}
+          <Loader size={14} color="#3d4f5b" class="animate-spin flex-shrink-0" />
+        {:else}
+          <Search size={14} color="#3d4f5b" class="flex-shrink-0" />
+        {/if}
+        <input
+          type="text"
+          bind:value={searchQuery}
+          oninput={onSearchInput}
+          placeholder="Adresse suchen…"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          class="flex-1 bg-transparent text-xs text-mdb-ink placeholder:text-mdb-steel outline-none"
+        />
+        {#if searchQuery}
+          <button
+            onclick={() => { searchQuery = ''; searchResults = []; }}
+            aria-label="Suche löschen"
+            class="flex-shrink-0 text-mdb-steel active:text-mdb-ink"
+          >
+            <X size={14} />
+          </button>
+        {/if}
+      </div>
+
+      <!-- Search dropdown -->
+      {#if searchResults.length > 0}
+        <ul class="absolute left-0 right-0 top-full mt-1 z-50 bg-mdb-canvas border border-mdb-hairline rounded-mdb-lg overflow-hidden shadow-lg">
+          {#each searchResults as r}
+            <li class="border-t border-mdb-hairline first:border-t-0">
+              <button
+                onclick={() => selectSearchResult(r)}
+                class="w-full text-left px-4 py-3 text-xs text-mdb-ink active:bg-mdb-surface transition-colors truncate"
+              >
+                {r.display_name}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+
     </div>
 
     <!-- ── Distanz / Dauer ── -->
@@ -911,7 +1023,7 @@
   </div>
 
   <!-- ── Footer ── -->
-  <div class="mt-6 bg-mdb-canvas border-t border-mdb-hairline" style="padding-bottom: calc(env(safe-area-inset-bottom) + 32px)">
+  <div class="mt-6 bg-mdb-canvas border-t border-mdb-hairline footer-bottom">
     <div class="px-5 pt-5 pb-2">
       <!-- App name -->
       <div class="flex items-center justify-center mb-4">
@@ -1167,9 +1279,7 @@
     {#each [
       { icon: Map,      label: 'Route-Farbe nach Untergrund', detail: 'Grün · Gelb · Orange auf der Karte' },
       { icon: Bookmark, label: 'Route speichern',             detail: 'Letzte Touren wiederfinden' },
-      { icon: MapPin,   label: 'Startpunkt manuell setzen',   detail: 'Tap auf Karte oder Adresssuche' },
       { icon: Globe,    label: 'Sprach-Switch DE/EN',         detail: 'Englische Oberfläche' },
-      { icon: BellRing, label: 'Wetter-Warnung',              detail: 'Push Notification vor der Tour' },
       { icon: WifiOff,  label: 'Offline-Modus',               detail: 'App startet ohne Netz' },
     ] as item}
       {@const Icon = item.icon}
@@ -1194,7 +1304,7 @@
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">2</span>
-      <p><strong class="text-white">GPS & Startzeit</strong> — Standort ermitteln und geplante Startzeit wählen. Wetter und Wind werden exakt für diesen Zeitpunkt abgerufen.</p>
+      <p><strong class="text-white">Startpunkt & Startzeit</strong> — Standort per GPS ermitteln oder Adresse eingeben. Startzeit wählen — Wetter und Wind werden exakt für diesen Zeitpunkt abgerufen.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">3</span>

@@ -26,6 +26,17 @@ html, body {
   padding-top: env(safe-area-inset-top);
 }
 
+/* Footer: extra padding in browser (nav bar), minimal in PWA standalone */
+.footer-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+}
+
+@media (display-mode: standalone) {
+  .footer-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}
+
 /* Range input */
 input[type="range"] {
   accent-color: #00ed64;
