@@ -3,7 +3,7 @@
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import {
-    Navigation, Loader, Wind, Download, Route, Share2,
+    Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, BookOpen, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp
   } from 'lucide-svelte';
@@ -815,6 +815,24 @@
 
         </div>
         {/key}
+
+        <!-- Nutrition Tool -->
+        <a
+          href="https://bananasprocket.moindaniel.de/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="result-card flex items-center gap-4 bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4 active:opacity-80 transition-opacity"
+          style="animation-delay: 360ms"
+        >
+          <div class="w-10 h-10 rounded-mdb-lg bg-mdb-surface-feature border border-mdb-green/30 flex items-center justify-center flex-shrink-0">
+            <Utensils size={18} color="#00684a" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-mdb-ink">Nutrition planen</p>
+            <p class="text-xs text-mdb-steel mt-0.5">Verpflegung für diese Tour berechnen</p>
+          </div>
+          <ArrowUp size={14} color="#5c6c7a" style="transform: rotate(90deg); flex-shrink: 0" />
+        </a>
 
         <!-- Share + GPX Export -->
         <div class="result-card grid grid-cols-2 gap-2" style="animation-delay: 400ms">
