@@ -1158,27 +1158,27 @@
   <ul class="space-y-3 text-sm text-white/70">
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">1</span>
-      <p><strong class="text-white">Profil</strong> — Tippe oben rechts auf dein Avatar-Icon um deinen Namen zu hinterlegen.</p>
+      <p><strong class="text-white">Profil & Einstellungen</strong> — Avatar-Icon oben links: Name hinterlegen, Standard-Untergrund, Steigung, Distanz und Durchschnittsgeschwindigkeit festlegen.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">2</span>
-      <p><strong class="text-white">GPS & Zeit</strong> — Linke Karte: Standort ermitteln. Rechte Karte: Startzeit wählen.</p>
+      <p><strong class="text-white">GPS & Startzeit</strong> — Standort ermitteln und geplante Startzeit wählen. Wetter und Wind werden exakt für diesen Zeitpunkt abgerufen.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">3</span>
-      <p><strong class="text-white">Distanz & Dauer</strong> — Zielwerte per Schieberegler einstellen.</p>
+      <p><strong class="text-white">Distanz & Dauer</strong> — Zielwerte per Schieberegler einstellen. Umschalten zwischen km-Ziel und Zeitbudget.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">4</span>
-      <p><strong class="text-white">Untergrund & Steigung</strong> — Belag und Bergigkeit wählen.</p>
+      <p><strong class="text-white">Untergrund & Steigung</strong> — Belag und maximale Bergigkeit wählen.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">5</span>
-      <p><strong class="text-white">Route berechnen</strong> — Wind-optimierte Schleife mit Wetter & Höhenprofil.</p>
+      <p><strong class="text-white">Route berechnen</strong> — Wind-optimierte Schleife mit Wetter, Höhenprofil und Tipps. Zwischen mehreren Routen wechseln oder weitere laden.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">6</span>
-      <p><strong class="text-white">GPX-Export</strong> — Direkt in Garmin, Wahoo oder Komoot importieren.</p>
+      <p><strong class="text-white">Teilen & GPX</strong> — Route teilen oder als GPX-Datei exportieren — direkt in Garmin, Wahoo oder Komoot importierbar.</p>
     </li>
   </ul>
 </BottomSheet>
