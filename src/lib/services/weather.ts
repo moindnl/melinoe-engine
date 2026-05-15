@@ -33,9 +33,10 @@ export async function fetchWeather(lat: number, lon: number, startTime: Date): P
   const target = `${startTime.getFullYear()}-${pad(startTime.getMonth() + 1)}-${pad(startTime.getDate())}T${pad(startTime.getHours())}`;
   let idx = data.hourly.time.findIndex((t: string) => t.startsWith(target));
   if (idx < 0) {
-    // clamp to nearest available
-    const now = new Date().toISOString().slice(0, 13);
-    idx = data.hourly.time.findIndex((t: string) => t.startsWith(now));
+    // clamp to nearest available (use local time to match timezone:auto response)
+    const now = new Date();
+    const nowLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}`;
+    idx = data.hourly.time.findIndex((t: string) => t.startsWith(nowLocal));
     if (idx < 0) idx = 0;
   }
 
