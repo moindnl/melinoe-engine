@@ -119,6 +119,15 @@
     }));
   }
 
+  function saveSession() {
+    try {
+      sessionStorage.setItem('tb_session', JSON.stringify({
+        allRoutes, weather, location, routeIndex,
+        surface, gradient, distanceKm, durationMin, planMode, startTime, timePicked,
+      }));
+    } catch { /* ignore quota errors */ }
+  }
+
   onMount(() => {
     console.log('%c"Ride as much or as little, as long or as short as you feel. But ride."\n— Eddy Merckx', 'color:#00ed64;font-style:italic;font-size:13px');
     console.log('%cFor Jannik and Lukas — my Ballerina-Ride-Buddies', 'color:#5c6c7a;font-size:11px');
@@ -135,6 +144,27 @@
         if (s.defaultGradient) { defaultGradient = s.defaultGradient; gradient = s.defaultGradient; }
         if (s.defaultDistance) { defaultDistance = s.defaultDistance; distanceKm = s.defaultDistance; }
       } catch { /* ignore corrupt data */ }
+    }
+
+    const savedSession = sessionStorage.getItem('tb_session');
+    if (savedSession) {
+      try {
+        const s = JSON.parse(savedSession);
+        if (s.allRoutes?.length) {
+          allRoutes = s.allRoutes;
+          weather = s.weather;
+          location = s.location;
+          routeIndex = s.routeIndex ?? 0;
+          surface = s.surface ?? surface;
+          gradient = s.gradient ?? gradient;
+          distanceKm = s.distanceKm ?? distanceKm;
+          durationMin = s.durationMin ?? durationMin;
+          planMode = s.planMode ?? planMode;
+          startTime = s.startTime ?? startTime;
+          timePicked = s.timePicked ?? false;
+          tips = generateRouteTips(s.weather, s.allRoutes[s.routeIndex ?? 0]);
+        }
+      } catch { /* ignore corrupt session */ }
     }
   });
 
@@ -194,6 +224,7 @@
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0);
       weather = w; allRoutes = routes; routeIndex = 0;
       tips = generateRouteTips(w, routes[0]);
+      saveSession();
       setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (e) {
       calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
@@ -865,7 +896,7 @@
 
         <!-- Reset -->
         <button
-          onclick={() => { allRoutes = []; routeIndex = 0; weather = null; tips = []; location = null; timePicked = false; }}
+          onclick={() => { allRoutes = []; routeIndex = 0; weather = null; tips = []; location = null; timePicked = false; sessionStorage.removeItem('tb_session'); }}
           class="result-card w-full border border-mdb-hairline-strong text-mdb-steel rounded-full py-3.5 text-sm font-medium active:scale-[0.97] transition-transform"
           style="animation-delay: 480ms"
         >
