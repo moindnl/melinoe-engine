@@ -20,8 +20,9 @@
   // --- Build ---
   const VERSION = '1.3';
   const BUILD_NAME = 'Eddy';
-  const RIDERS: Record<string, { nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
+  const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
+      fullName:    'Eddy Merckx',
       nickname:    'Der Kannibale',
       nationality: 'Belgien',
       years:       '1965 – 1978',
@@ -1036,7 +1037,7 @@
   onconfirm={() => timePicked = true}
 />
 
-<BottomSheet bind:open={riderOpen} title={BUILD_NAME}>
+<BottomSheet bind:open={riderOpen} title={RIDERS[BUILD_NAME]?.fullName ?? BUILD_NAME}>
   {#if RIDERS[BUILD_NAME]}
     {@const r = RIDERS[BUILD_NAME]}
     <div class="space-y-5">
@@ -1058,7 +1059,7 @@
       </div>
       <button
         onclick={() => { riderOpen = false; changelogOpen = true; }}
-        class="w-full py-3 rounded-full border border-mdb-green/30 text-mdb-green text-sm font-medium"
+        class="w-full py-3 rounded-full bg-mdb-green text-mdb-ink text-sm font-semibold active:opacity-70 transition-opacity"
       >
         Was ist neu in v{VERSION}?
       </button>
@@ -1072,7 +1073,7 @@
     <ul class="space-y-3">
       {#each CHANGELOG as item}
         <li class="flex items-start gap-3">
-          <span class="text-mdb-green font-bold flex-shrink-0 mt-0.5">·</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-mdb-green flex-shrink-0 mt-1.5"></span>
           <span class="text-sm text-white/80 leading-snug">{item}</span>
         </li>
       {/each}
