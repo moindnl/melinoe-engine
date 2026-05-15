@@ -55,6 +55,7 @@
         [[minLon, minLat], [maxLon, maxLat]],
         { padding: 40, duration: 800 }
       );
+
     });
   });
 

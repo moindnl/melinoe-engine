@@ -6,10 +6,21 @@
   let isIos = $state(false);
   let deferredPrompt = $state<any>(null);
 
+  const DISMISS_KEY = 'tb_install_dismissed';
+  const DISMISS_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  function wasDismissed(): boolean {
+    const v = localStorage.getItem(DISMISS_KEY);
+    if (!v) return false;
+    if (v === 'permanent') return true;
+    return Date.now() - parseInt(v) < DISMISS_TTL;
+  }
+
   onMount(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
       || (navigator as any).standalone === true;
     if (isStandalone) return;
+    if (wasDismissed()) return;
 
     isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
 
@@ -26,14 +37,16 @@
 
   function dismiss() {
     open = false;
+    localStorage.setItem(DISMISS_KEY, String(Date.now()));
   }
 
   async function install() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const { outcome } = await deferredPrompt.userChoice;
     deferredPrompt = null;
     open = false;
+    if (outcome === 'accepted') localStorage.setItem(DISMISS_KEY, 'permanent');
   }
 </script>
 

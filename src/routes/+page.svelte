@@ -6,7 +6,7 @@
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
-    Map, Bookmark, MapPin, Globe, WifiOff, Search, BarChart2, Star
+    MapPin, Search, BarChart2, Star, Globe, WifiOff, Bookmark
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -19,7 +19,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.6';
+  const VERSION = '1.7';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -44,6 +44,8 @@
   };
 
   const CHANGELOG: string[] = [
+    'Formular-State bleibt nach App-Neustart erhalten — Distanz, Untergrund, Steigung werden lokal gespeichert.',
+    'Install-Hinweis wird 30 Tage ausgeblendet nach Ablehnen — erscheint nicht mehr bei jedem Start.',
     'Routenvergleich: alle berechneten Routen sortiert nach Rückenwind — Empfehlung auf einen Blick.',
     'Adresssuche: Startpunkt per Adresseingabe setzen — als Alternative zu GPS.',
     'Wetter und Wind werden jetzt für die geplante Startzeit abgerufen — nicht für den aktuellen Moment.',
@@ -59,15 +61,15 @@
   let defaultGradient = $state<GradientLevel>('any');
   let defaultDistance = $state(60);
 
-  let planMode = $state<PlanMode>('distance');
-  let distanceKm = $state(60);
-  let durationMin = $state(120);
   function nowString() {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
+  let planMode = $state<PlanMode>('distance');
+  let distanceKm = $state(60);
+  let durationMin = $state(120);
   let startTime = $state(nowString());
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
@@ -214,6 +216,18 @@
       } catch { /* ignore corrupt data */ }
     }
 
+    const savedForm = localStorage.getItem('tb_form');
+    if (savedForm) {
+      try {
+        const f = JSON.parse(savedForm);
+        if (Number.isFinite(f.distanceKm)) distanceKm = f.distanceKm;
+        if (Number.isFinite(f.durationMin)) durationMin = f.durationMin;
+        if (f.surface) surface = f.surface;
+        if (f.gradient) gradient = f.gradient;
+        if (f.planMode) planMode = f.planMode;
+      } catch { /* ignore corrupt data */ }
+    }
+
     const savedSession = sessionStorage.getItem('tb_session');
     if (savedSession) {
       try {
@@ -265,6 +279,12 @@
     return () => clearInterval(t);
   });
 
+  $effect(() => {
+    try {
+      localStorage.setItem('tb_form', JSON.stringify({ distanceKm, surface, gradient, planMode, durationMin }));
+    } catch { /* ignore quota errors */ }
+  });
+
   function fmt(min: number) {
     const h = Math.floor(min / 60), m = min % 60;
     return h > 0 ? `${h}:${m.toString().padStart(2, '0')} h` : `${m} min`;
@@ -312,8 +332,9 @@
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0);
-      weather = w; allRoutes = routes; routeIndex = 0;
-      tips = generateRouteTips(w, routes[0]);
+      const validRoutes = routes.filter(isValidRoute);
+      weather = w; allRoutes = validRoutes; routeIndex = 0;
+      tips = generateRouteTips(w, validRoutes[0]);
       saveSession();
       await tick();
       document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
@@ -331,7 +352,7 @@
       const offset = (bearingOffset + 22.5) % 360;
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset);
       bearingOffset = offset;
-      allRoutes = [...allRoutes, ...routes];
+      allRoutes = [...allRoutes, ...routes.filter(isValidRoute)];
     } catch (e) {
       calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
     } finally {
@@ -1357,7 +1378,7 @@
   <div class="space-y-2">
     <p class="text-xs text-white/60 mb-3">Was als nächstes kommt — keine Versprechen, keine Deadlines.</p>
     {#each [
-      { icon: Map,      label: 'Route-Farbe nach Untergrund', detail: 'Grün · Gelb · Orange auf der Karte' },
+      { icon: Route,    label: 'Route-Farbe nach Untergrund', detail: 'Grün · Gelb · Orange auf der Karte' },
       { icon: Bookmark, label: 'Route speichern',             detail: 'Letzte Touren wiederfinden' },
       { icon: Globe,    label: 'Sprach-Switch DE/EN',         detail: 'Englische Oberfläche' },
       { icon: WifiOff,  label: 'Offline-Modus',               detail: 'App startet ohne Netz' },
