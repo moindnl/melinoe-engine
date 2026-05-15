@@ -23,13 +23,14 @@ export async function fetchWeather(lat: number, lon: number, startTime: Date): P
   url.searchParams.set('hourly', 'temperature_2m,windspeed_10m,winddirection_10m,weathercode');
   url.searchParams.set('wind_speed_unit', 'kmh');
   url.searchParams.set('timezone', 'auto');
-  url.searchParams.set('forecast_days', '3');
+  url.searchParams.set('forecast_days', '7');
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Open-Meteo: ${res.status}`);
   const data = await res.json();
 
-  const target = startTime.toISOString().slice(0, 13);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const target = `${startTime.getFullYear()}-${pad(startTime.getMonth() + 1)}-${pad(startTime.getDate())}T${pad(startTime.getHours())}`;
   let idx = data.hourly.time.findIndex((t: string) => t.startsWith(target));
   if (idx < 0) {
     // clamp to nearest available

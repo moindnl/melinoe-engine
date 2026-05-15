@@ -4,8 +4,9 @@
   import { cubicOut } from 'svelte/easing';
   import {
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
-    Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, BookOpen, Droplet,
-    UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp
+    Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
+    UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
+    Map, Bookmark, MapPin, Globe, BellRing, WifiOff
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -18,7 +19,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.3';
+  const VERSION = '1.4';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -43,8 +44,9 @@
   };
 
   const CHANGELOG: string[] = [
-    'Dauer basiert jetzt auf der echten Routendistanz ÷ eingestellter Durchschnittsgeschwindigkeit — keine Schätzfaktoren mehr.',
-    '78 km bei 30 km/h = genau 2:36 h. Immer.',
+    'Wetter und Wind werden jetzt für die geplante Startzeit abgerufen — nicht für den aktuellen Moment.',
+    'Roadmap: geplante Features direkt in der App einsehbar (Footer → Roadmap).',
+    'Barrierefreiheit: Kontraste und Schriftgrößen auf WCAG 2.1 AA angehoben.',
   ];
 
   // --- State ---
@@ -95,6 +97,7 @@
   let impressumOpen = $state(false);
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
+  let roadmapOpen = $state(false);
   let profileOpen = $state(false);
   let userName = $state('');
   let nameInput = $state('');
@@ -310,7 +313,7 @@
 
   <!-- ── Header ── -->
   <div class="px-5 pb-8 relative overflow-hidden transition-colors duration-1000 rounded-b-[2rem]"
-    style="padding-top: calc(env(safe-area-inset-top) + 1.25rem); background: {isNight ? 'linear-gradient(160deg, #020812 0%, #050d1f 60%, #001e2b 100%)' : '#001e2b'}">
+    style="padding-top: calc(env(safe-area-inset-top) + 1.25rem); background: {isNight ? 'linear-gradient(160deg, #020812 0%, #050d1f 60%, #001e2b 100%)' : '#001e2b'}; box-shadow: 0 4px 24px rgba(0,0,0,0.35)">
 
     <!-- Night sky easter egg -->
     {#if isNight}
@@ -470,7 +473,7 @@
             <p class="text-xs font-semibold text-mdb-ink tabular-nums">
               {new Date(startTime).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
             </p>
-            <p class="text-[10px] text-mdb-steel">
+            <p class="text-xs text-mdb-steel">
               {new Date(startTime).toLocaleDateString('de', { weekday: 'short', day: 'numeric', month: 'short' })}
             </p>
           </div>
@@ -552,7 +555,7 @@
                   : 'bg-transparent text-mdb-slate border-mdb-hairline-strong'}"
             >
               <div class="text-xs font-semibold leading-tight">{gradientLabels[g]}</div>
-              <div class="text-[10px] leading-tight {gradient === g ? 'text-mdb-ink/70' : 'text-mdb-slate'}">{gradientSubLabels[g]}</div>
+              <div class="text-xs leading-tight {gradient === g ? 'text-mdb-ink/70' : 'text-mdb-slate'}">{gradientSubLabels[g]}</div>
             </button>
           {/key}
         {/each}
@@ -743,7 +746,13 @@
 
         <!-- Wind -->
         <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 160ms">
-          <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Wind</div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Wind</div>
+            <div class="text-xs text-mdb-steel tabular-nums">
+              {new Date(startTime).toLocaleDateString('de', { weekday: 'short', day: 'numeric', month: 'short' })}
+              · {new Date(startTime).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
           <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-full bg-mdb-surface border border-mdb-hairline flex items-center justify-center flex-shrink-0">
               <svg width="52" height="52" viewBox="0 0 52 52" aria-label="Windrichtungskompass" role="img">
@@ -769,7 +778,13 @@
 
         <!-- Weather -->
         <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 240ms">
-          <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Wetter zur Startzeit</div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Wetter zur Startzeit</div>
+            <div class="text-xs text-mdb-steel tabular-nums">
+              {new Date(startTime).toLocaleDateString('de', { weekday: 'short', day: 'numeric', month: 'short' })}
+              · {new Date(startTime).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-mdb-lg flex items-center justify-center" style="background:{conditionColor[weather.condition]}18">
@@ -917,19 +932,18 @@
       <div class="flex items-center justify-center gap-3">
         <button
           onclick={() => anleitungOpen = true}
-          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors flex items-center gap-1"
-        >
-          <BookOpen size={12} />Anleitung
-        </button>
-        <span class="text-mdb-hairline-strong text-xs">|</span>
-        <a href="https://moindaniel.de/" target="_blank" rel="noopener noreferrer" class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors">© {new Date().getFullYear()} Daniel Muschinski</a>
+          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
+        >Anleitung</button>
         <span class="text-mdb-hairline-strong text-xs">|</span>
         <button
           onclick={() => impressumOpen = true}
           class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
-        >
-          Impressum
-        </button>
+        >Impressum</button>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button
+          onclick={() => roadmapOpen = true}
+          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
+        >Roadmap</button>
       </div>
       <div class="flex justify-center mt-3">
         <button
@@ -975,7 +989,7 @@
     <div class="border-t border-white/10"></div>
 
     <!-- Route-Defaults -->
-    <p class="text-xs font-semibold text-white/50 uppercase tracking-wider">Route-Defaults</p>
+    <p class="text-xs font-semibold text-white/60 uppercase tracking-wider">Route-Defaults</p>
 
     <!-- Untergrund: label left, pills right -->
     <div class="flex items-center gap-3">
@@ -1018,7 +1032,7 @@
     <div class="border-t border-white/10"></div>
 
     <!-- Geschwindigkeit -->
-    <p class="text-xs font-semibold text-white/50 uppercase tracking-wider">Ø Geschwindigkeit</p>
+    <p class="text-xs font-semibold text-white/60 uppercase tracking-wider">Ø Geschwindigkeit</p>
 
     {#each ([['road', 'Asphalt'], ['mixed', 'Gemischt'], ['gravel', 'Schotter']] as [SurfaceType, string][]) as [s, label]}
       <div class="flex items-center gap-3">
@@ -1110,35 +1124,60 @@
         <li><span class="text-white">OpenRouteService</span> — Routenberechnung (GPS-Koordinaten)</li>
         <li><span class="text-white">OpenFreeMap</span> — Kartendarstellung</li>
       </ul>
-      <p class="mt-2 text-white/50 text-xs">Es werden keine personenbezogenen Daten gespeichert oder weitergegeben. Name und API-Key werden ausschließlich lokal auf dem Gerät gespeichert.</p>
+      <p class="mt-2 text-white/60 text-xs">Es werden keine personenbezogenen Daten gespeichert oder weitergegeben. Name und API-Key werden ausschließlich lokal auf dem Gerät gespeichert.</p>
     </div>
+  </div>
+</BottomSheet>
+
+<BottomSheet bind:open={roadmapOpen} title="Roadmap">
+  <div class="space-y-2">
+    <p class="text-xs text-white/60 mb-3">Was als nächstes kommt — keine Versprechen, keine Deadlines.</p>
+    {#each [
+      { icon: Map,      label: 'Route-Farbe nach Untergrund', detail: 'Grün · Gelb · Orange auf der Karte' },
+      { icon: Bookmark, label: 'Route speichern',             detail: 'Letzte Touren wiederfinden' },
+      { icon: MapPin,   label: 'Startpunkt manuell setzen',   detail: 'Tap auf Karte oder Adresssuche' },
+      { icon: Globe,    label: 'Sprach-Switch DE/EN',         detail: 'Englische Oberfläche' },
+      { icon: BellRing, label: 'Wetter-Warnung',              detail: 'Push Notification vor der Tour' },
+      { icon: WifiOff,  label: 'Offline-Modus',               detail: 'App startet ohne Netz' },
+    ] as item}
+      {@const Icon = item.icon}
+      <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-3">
+        <div class="w-9 h-9 rounded-xl bg-white/8 flex items-center justify-center flex-shrink-0">
+          <Icon size={16} color="rgba(255,255,255,0.5)" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-white/85 font-medium">{item.label}</p>
+          <p class="text-xs text-white/60 mt-0.5">{item.detail}</p>
+        </div>
+      </div>
+    {/each}
   </div>
 </BottomSheet>
 
 <BottomSheet bind:open={anleitungOpen} title="Anleitung">
   <ul class="space-y-3 text-sm text-white/70">
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-[10px] font-bold mt-0.5">1</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">1</span>
       <p><strong class="text-white">Profil</strong> — Tippe oben rechts auf dein Avatar-Icon um deinen Namen zu hinterlegen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-[10px] font-bold mt-0.5">2</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">2</span>
       <p><strong class="text-white">GPS & Zeit</strong> — Linke Karte: Standort ermitteln. Rechte Karte: Startzeit wählen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-[10px] font-bold mt-0.5">3</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">3</span>
       <p><strong class="text-white">Distanz & Dauer</strong> — Zielwerte per Schieberegler einstellen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-[10px] font-bold mt-0.5">4</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">4</span>
       <p><strong class="text-white">Untergrund & Steigung</strong> — Belag und Bergigkeit wählen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-[10px] font-bold mt-0.5">5</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">5</span>
       <p><strong class="text-white">Route berechnen</strong> — Wind-optimierte Schleife mit Wetter & Höhenprofil.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-[10px] font-bold mt-0.5">6</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">6</span>
       <p><strong class="text-white">GPX-Export</strong> — Direkt in Garmin, Wahoo oder Komoot importieren.</p>
     </li>
   </ul>
