@@ -6,7 +6,11 @@
   let selected = $state(new Date(value || Date.now()));
 
   $effect(() => {
-    if (open) selected = value ? new Date(value) : new Date();
+    if (open) {
+      const d = value ? new Date(value) : new Date();
+      d.setMinutes(Math.round(d.getMinutes() / 5) * 5, 0, 0);
+      selected = d;
+    }
   });
 
   const days = Array.from({ length: 7 }, (_, i) => {

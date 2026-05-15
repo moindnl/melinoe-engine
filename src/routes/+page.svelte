@@ -18,7 +18,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.0';
+  const VERSION = '1.1';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -200,7 +200,6 @@
       setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (e) {
       calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
-      console.error('calculate:', e);
     } finally {
       loading = false;
     }
@@ -766,7 +765,7 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="font-semibold text-mdb-ink">{windDirectionLabel(weather.windDirection)}wind · {weather.windSpeed} km/h</div>
+              <div class="font-semibold text-mdb-ink">Wind aus {windDirectionLabel(weather.windDirection)} · {weather.windSpeed} km/h</div>
               <div class="text-sm text-mdb-steel mt-0.5">{route.windScore}% Rückenwind auf Rückfahrt</div>
               <div class="mt-2 h-1.5 bg-mdb-surface rounded-full overflow-hidden border border-mdb-hairline">
                 <div class="h-full rounded-full transition-all duration-700" style="width:{route.windScore}%;background:{scoreColor}"></div>
