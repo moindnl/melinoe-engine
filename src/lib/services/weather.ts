@@ -39,11 +39,18 @@ export async function fetchWeather(lat: number, lon: number, startTime: Date): P
     if (idx < 0) idx = 0;
   }
 
+  const temp = data.hourly.temperature_2m[idx];
+  const wind = data.hourly.windspeed_10m[idx];
+  const dir  = data.hourly.winddirection_10m[idx];
+  if (temp == null || wind == null || dir == null) {
+    throw new Error('Für die gewählte Startzeit sind keine Wetterdaten verfügbar. Bitte eine frühere Zeit wählen.');
+  }
+
   return {
-    temperature:   Math.round(data.hourly.temperature_2m[idx]),
-    windSpeed:     Math.round(data.hourly.windspeed_10m[idx]),
-    windDirection: Math.round(data.hourly.winddirection_10m[idx]),
-    condition:     wmoToCondition(data.hourly.weathercode[idx])
+    temperature:   Math.round(temp),
+    windSpeed:     Math.round(wind),
+    windDirection: Math.round(dir),
+    condition:     wmoToCondition(data.hourly.weathercode[idx] ?? 0)
   };
 }
 

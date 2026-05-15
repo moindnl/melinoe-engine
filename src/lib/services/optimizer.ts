@@ -36,6 +36,8 @@ export function generateRouteTips(weather: WeatherData, route: RouteResult): str
   // Gradient tip
   if (route.gradient === 'flat') {
     tips.push('Flachroute: Aero-Position und hohes Tempo möglich. Gute Gelegenheit für Intervalle oder Tempoarbeit.');
+  } else if (route.gradient === 'moderate') {
+    tips.push(`Moderate Hügel mit ~${route.elevationGain} Hm: Gleichmäßiges Tempo, Kraft für die zweite Hälfte einteilen.`);
   } else if (route.gradient === 'hilly') {
     tips.push(`Hügelige Strecke mit ~${route.elevationGain} Hm: Gleichmäßige Wattleistung an den Anstiegen, nicht überpacen.`);
   }
