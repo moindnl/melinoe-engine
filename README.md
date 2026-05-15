@@ -1,6 +1,6 @@
 # TrailBlazer Ultra
 
-Wind-optimised road cycling route planner. Mobile-first PWA.
+Mobile-first PWA built with SvelteKit + Svelte 5, MapLibre GL, OpenRouteService, and Open-Meteo.
 
 ## About
 
