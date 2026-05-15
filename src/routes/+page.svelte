@@ -42,14 +42,14 @@
   };
 
   const CHANGELOG: string[] = [
-    'Wind-optimierte Rundenplanung — 5 Routen-Kandidaten, bester Rückenwind gewinnt.',
-    'Echtzeit-Wetterdaten via Open-Meteo für die gewählte Startzeit.',
-    'Höhenprofil-Chart mit Aufstieg und Abstieg.',
-    'GPX-Export direkt in Garmin, Wahoo oder Komoot.',
-    'Benutzerdefinierter Datum- & Uhrzeitpicker.',
-    'Personalisierung mit Name und Begrüßung.',
-    'Nacht-Theme (23–5 Uhr) und Regen-Easter-Egg.',
-    'PWA — zum Homescreen hinzufügbar.',
+    'Profil & Einstellungen — Name, Route-Defaults und Durchschnittsgeschwindigkeit werden lokal gespeichert.',
+    'Mehrere Routen — zwischen Vorschlägen navigieren, weitere nachladen.',
+    'Routen-Wechsel mit Slide-Animation je nach Richtung.',
+    'Teilen-Button — Route als GPX via nativen Share-Sheet weitergeben.',
+    'Fehlermeldungen mit konkreten Handlungshinweisen.',
+    'Avatar-Button im Header neu positioniert (inline, kein Float mehr).',
+    'Wind-Karte: lesbare Richtungsangabe ("Wind aus SW").',
+    'Startzeit-Picker: Minuten werden auf 5er-Schritte gerundet.',
   ];
 
   // --- State ---
