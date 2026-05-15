@@ -117,6 +117,9 @@
   }
 
   onMount(() => {
+    console.log('%c"Ride as much or as little, as long or as short as you feel. But ride."\n— Eddy Merckx', 'color:#00ed64;font-style:italic;font-size:13px');
+    console.log('%cFor Jannik and Lukas — my Ballerina-Ride-Buddies', 'color:#5c6c7a;font-size:11px');
+
     const savedName = localStorage.getItem('tb_user_name');
     if (savedName) userName = savedName;
 
