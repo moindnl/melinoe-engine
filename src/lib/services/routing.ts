@@ -211,14 +211,13 @@ function orsDataToResult(
 
   const distanceKm = Math.round(distM / 100) / 10;
   const elevationProfile = buildProfile(r.coords, r.elevations, cumDist, 100);
-  const durFactor = surface === 'gravel' ? 1.15 : surface === 'mixed' ? 1.05 : 0.95;
   const maxEle = Math.round(distanceKm * 30);
 
   return {
     coordinates: r.coords,
     elevationProfile,
     distanceKm,
-    durationMin: Math.round(targetDurationMin * durFactor),
+    durationMin: targetDurationMin,
     elevationGain: Math.min(Math.round(elevationGain), maxEle),
     elevationLoss: Math.min(Math.round(elevationLoss), maxEle),
     windScore: Math.round(windScore),

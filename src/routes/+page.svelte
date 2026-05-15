@@ -18,7 +18,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.1';
+  const VERSION = '1.2';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -42,14 +42,8 @@
   };
 
   const CHANGELOG: string[] = [
-    'Profil & Einstellungen — Name, Route-Defaults und Durchschnittsgeschwindigkeit werden lokal gespeichert.',
-    'Mehrere Routen — zwischen Vorschlägen navigieren, weitere nachladen.',
-    'Routen-Wechsel mit Slide-Animation je nach Richtung.',
-    'Teilen-Button — Route als GPX via nativen Share-Sheet weitergeben.',
-    'Fehlermeldungen mit konkreten Handlungshinweisen.',
-    'Avatar-Button im Header neu positioniert (inline, kein Float mehr).',
-    'Wind-Karte: lesbare Richtungsangabe ("Wind aus SW").',
-    'Startzeit-Picker: Minuten werden auf 5er-Schritte gerundet.',
+    'Dauerbrechnung korrigiert — angezeigte Zeit entspricht jetzt exakt Distanz ÷ eingestellter Geschwindigkeit.',
+    'Nutrition-Tool — direkter Link zur Verpflegungsplanung im Ergebnisbereich.',
   ];
 
   // --- State ---
