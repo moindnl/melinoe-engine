@@ -19,7 +19,7 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.7';
+  const VERSION = '1.8';
   const BUILD_NAME = 'Eddy';
   const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
     'Eddy': {
@@ -44,6 +44,9 @@
   };
 
   const CHANGELOG: string[] = [
+    'Distanzabweichung sichtbar — kleines +/− Badge zeigt wie weit die Route vom Zielwert abweicht.',
+    'FAQ im Footer — häufige Fragen zu Distanzabweichung, Routenfehler und Rückenwind-Score.',
+    'Scroll-Verhalten verbessert — nach Berechnung springt die Ansicht direkt zur Karte statt zu den Stats.',
     'Formular-State bleibt nach App-Neustart erhalten — Distanz, Untergrund, Steigung werden lokal gespeichert.',
     'Install-Hinweis wird 30 Tage ausgeblendet nach Ablehnen — erscheint nicht mehr bei jedem Start.',
     'Routenvergleich: alle berechneten Routen sortiert nach Rückenwind — Empfehlung auf einen Blick.',
@@ -168,6 +171,7 @@
   let riderOpen = $state(false);
   let roadmapOpen = $state(false);
   let profileOpen = $state(false);
+  let faqOpen = $state(false);
   let compareOpen = $state(false);
   let userName = $state('');
   let nameInput = $state('');
@@ -337,7 +341,10 @@
       tips = generateRouteTips(w, validRoutes[0]);
       saveSession();
       await tick();
-      document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+      requestAnimationFrame(() => {
+        (document.getElementById('result-map') ?? document.getElementById('results'))
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     } catch (e) {
       calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
     } finally {
@@ -425,7 +432,7 @@
 
   $effect(() => { if (route && weather) tips = generateRouteTips(weather, route); });
   const arrowRot = $derived(weather ? (weather.windDirection + 180) % 360 : 0);
-  const isNight = $derived((() => { const h = new Date().getHours(); return h >= 23 || h < 5; })());
+  const isNight = $derived(new Date().getHours() >= 23 || new Date().getHours() < 5);
 
   const stars = [
     { top: '12%', left: '7%',  size: 2, dur: '2.1s', delay: '0s'    },
@@ -445,6 +452,10 @@
   const scoreColor = $derived(route
     ? route.windScore >= 60 ? '#00ed64' : route.windScore >= 40 ? '#fa6e39' : '#e74c3c'
     : '#00ed64');
+
+  const distDevKm = $derived(route
+    ? Math.round((route.distanceKm - targetDistanceKm) * 10) / 10
+    : 0);
 
 </script>
 
@@ -836,7 +847,7 @@
         <!-- Map -->
         {#if location}
           {#key routeIndex}
-            <div class="result-card rounded-mdb-lg overflow-hidden border border-mdb-hairline" style="height: 42vw; min-height: 200px; max-height: 300px; animation-delay: 0ms"
+            <div id="result-map" class="result-card rounded-mdb-lg overflow-hidden border border-mdb-hairline" style="height: 42vw; min-height: 200px; max-height: 300px; animation-delay: 0ms"
               transition:fade={{ duration: 200 }}>
               <MapView coordinates={route.coordinates} origin={location} lineColor="#00ed64" />
             </div>
@@ -911,7 +922,13 @@
             <div class="flex flex-col items-center gap-1 border-r border-mdb-hairline">
               <Gauge size={15} color="#5c6c7a" />
               <span class="text-xl font-semibold text-mdb-ink">{route.distanceKm}</span>
-              <span class="text-xs text-mdb-steel">km</span>
+              {#if Math.abs(distDevKm) >= 1}
+                <span class="text-[10px] tabular-nums {Math.abs(distDevKm) > targetDistanceKm * 0.2 ? 'text-amber-400' : 'text-mdb-steel/70'}">
+                  {distDevKm > 0 ? '+' : ''}{distDevKm} km
+                </span>
+              {:else}
+                <span class="text-xs text-mdb-steel">km</span>
+              {/if}
             </div>
             <div class="flex flex-col items-center gap-1">
               <Timer size={15} color="#5c6c7a" />
@@ -1134,6 +1151,11 @@
         >Anleitung</button>
         <span class="text-mdb-hairline-strong text-xs">|</span>
         <button
+          onclick={() => faqOpen = true}
+          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
+        >FAQ</button>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button
           onclick={() => impressumOpen = true}
           class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
         >Impressum</button>
@@ -1153,6 +1175,9 @@
           <span class="text-xs text-mdb-steel font-medium">{BUILD_NAME}</span>
         </button>
       </div>
+      <p class="text-center text-[10px] text-mdb-steel/50 italic mt-4 px-6 leading-relaxed">
+        „Ride as much or as little, as long or as short as you feel. But ride."
+      </p>
     </div>
   </div>
 
@@ -1395,6 +1420,23 @@
       </div>
     {/each}
   </div>
+</BottomSheet>
+
+<BottomSheet bind:open={faqOpen} title="FAQ">
+  <ul class="space-y-3 text-sm text-white/70">
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">?</span>
+      <p><strong class="text-white">Warum weicht die Distanz ab?</strong> — Echte Straßen, keine Luftlinie. Schleifen können nicht exakt auf den Meter geplant werden — ±15 % sind normal.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">?</span>
+      <p><strong class="text-white">Warum wird keine Route gefunden?</strong> — Distanz erhöhen, Steigung auf „Beliebig" oder Untergrund auf „Gemischt" wechseln. Engere Filter schließen viele Wege aus.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">?</span>
+      <p><strong class="text-white">Was bedeutet der Rückenwind-%?</strong> — Anteil der geschätzten Rückweg-Zeit mit günstigem Wind (±60°). 100 % = voller Rückenwind nach Hause.</p>
+    </li>
+  </ul>
 </BottomSheet>
 
 <BottomSheet bind:open={anleitungOpen} title="Anleitung">
