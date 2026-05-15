@@ -17,8 +17,6 @@ export const orsProfile: Record<SurfaceType, string> = {
   gravel: 'cycling-mountain',
 };
 
-// Steepness: how much to avoid steep terrain (ORS steepness_difficulty 0-3)
-// Higher = flatter routes preferred
 export type GradientLevel = 'flat' | 'moderate' | 'hilly' | 'any';
 
 export const gradientLabels: Record<GradientLevel, string> = {
@@ -40,24 +38,25 @@ const steepnessDifficulty: Record<GradientLevel, number | null> = {
   flat:     3,
   moderate: 2,
   hilly:    1,
-  any:      null, // omit param entirely
+  any:      null,
 };
 
 export interface ElevationPoint {
-  distanceKm: number;  // cumulative distance from start
-  elevationM: number;  // meters above sea level
+  distanceKm: number;
+  elevationM: number;
 }
 
 export interface RouteResult {
   coordinates: RoutePoint[];
-  elevationProfile: ElevationPoint[]; // sampled for chart
+  elevationProfile: ElevationPoint[];
   distanceKm: number;
   durationMin: number;
   elevationGain: number;
   elevationLoss: number;
   surface: SurfaceType;
   gradient: GradientLevel;
-  windScore: number; // 0-100
+  windScore: number;    // 0-100
+  startBearing: number; // degrees 0-360, initial heading from origin
 }
 
 // ── API key resolution ──────────────────────────────────────────────────────
@@ -92,60 +91,65 @@ function scoreRouteByWind(coords: RoutePoint[], windFromDeg: number): number {
 
   for (let i = 1; i < n; i++) {
     const bearing = bearingDeg(coords[i - 1], coords[i]);
-    const diff = ((bearing - windToDeg + 540) % 360) - 180; // -180..180
+    const diff = ((bearing - windToDeg + 540) % 360) - 180;
     const alignment = Math.cos((diff * Math.PI) / 180); // 1=tailwind, -1=headwind
     const segLen = Math.hypot(coords[i].lon - coords[i - 1].lon, coords[i].lat - coords[i - 1].lat);
-    // Weight the second half of the route more (we want tailwind coming home)
+    // Weight second half more (tailwind home)
     const posWeight = 0.5 + (i / n) * 0.5;
     score += alignment * segLen * posWeight;
     totalLen += segLen * posWeight;
   }
-  return totalLen > 0 ? ((score / totalLen + 1) / 2) * 100 : 50; // normalise 0-100
+  return totalLen > 0 ? ((score / totalLen + 1) / 2) * 100 : 50;
+}
+
+// ── Geodesy helpers ───────────────────────────────────────────────────────────
+
+// Compute a waypoint at given bearing (degrees) and distance (km) from origin
+function computeWaypoint(origin: RoutePoint, bearingDeg: number, distanceKm: number): RoutePoint {
+  const R = 6371;
+  const d = distanceKm / R;
+  const b = (bearingDeg * Math.PI) / 180;
+  const φ1 = (origin.lat * Math.PI) / 180;
+  const λ1 = (origin.lon * Math.PI) / 180;
+  const φ2 = Math.asin(Math.sin(φ1) * Math.cos(d) + Math.cos(φ1) * Math.sin(d) * Math.cos(b));
+  const λ2 = λ1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(φ1), Math.cos(d) - Math.sin(φ1) * Math.sin(φ2));
+  return { lat: (φ2 * 180) / Math.PI, lon: (λ2 * 180) / Math.PI };
 }
 
 // ── ORS data type ─────────────────────────────────────────────────────────────
 
 interface OrsRouteData {
   coords: RoutePoint[];
-  elevations: number[]; // meters, one per coord
+  elevations: number[];
 }
 
-// ── Round-trip with wind optimisation ────────────────────────────────────────
+// ── Triangle waypoint routing ─────────────────────────────────────────────────
 //
-// Strategy: request 5 ORS round-trips with different seeds from the same
-// origin, score each by wind alignment, return the best one.
-// ORS round_trip option generates genuine loops (not back-and-forth).
+// Strategy: generate 4 candidate loops as triangles (NE / SE / SW / NW).
+// Each triangle has 2 waypoints placed at specific bearings from origin.
+// ORS routes origin → wp1 → wp2 → origin along the road network.
+// Wind-score all successful routes, return best.
+//
+// This produces genuinely different loop shapes per distance and direction,
+// unlike round_trip which always generates circular/elliptical geometry.
 
-function assertFinite(label: string, v: number) {
-  if (!Number.isFinite(v)) throw new Error(`Koordinate ungültig: ${label} = ${v}`);
-}
-
-async function fetchOrsRoundTrip(
+async function fetchOrsViaWaypoints(
   apiKey: string,
   profile: string,
-  origin: RoutePoint,
-  lengthM: number,
-  seed: number,
+  waypoints: RoutePoint[],
   gradient: GradientLevel,
 ): Promise<OrsRouteData> {
-  if (!Number.isFinite(origin.lon) || !Number.isFinite(origin.lat)) {
-    throw new Error(`Ungültige Koordinate: lon=${origin.lon}, lat=${origin.lat}`);
-  }
-
   const profilesToTry = profile === 'cycling-regular'
     ? ['cycling-regular', 'cycling-road']
     : [profile, 'cycling-regular'];
 
   const difficulty = steepnessDifficulty[gradient];
   const body: Record<string, unknown> = {
-    coordinates: [[origin.lon, origin.lat]],
+    coordinates: waypoints.map(p => [p.lon, p.lat]),
     elevation: true,
-    options: {
-      round_trip: { length: lengthM, points: 3, seed },
-    },
   };
   if (difficulty !== null) {
-    body.profile_params = { weightings: { steepness_difficulty: difficulty } };
+    body.options = { profile_params: { weightings: { steepness_difficulty: difficulty } } };
   }
 
   for (const p of profilesToTry) {
@@ -179,6 +183,51 @@ async function fetchOrsRoundTrip(
   throw new Error(`ORS: kein Profil verfügbar (${profilesToTry.join(', ')})`);
 }
 
+function orsDataToResult(
+  r: OrsRouteData,
+  windScore: number,
+  targetDurationMin: number,
+  surface: SurfaceType,
+  gradient: GradientLevel,
+): RouteResult {
+  let distM = 0;
+  let elevationGain = 0;
+  let elevationLoss = 0;
+  const cumDist: number[] = [0];
+
+  for (let i = 1; i < r.coords.length; i++) {
+    const dlat = (r.coords[i].lat - r.coords[i - 1].lat) * 111000;
+    const dlon = (r.coords[i].lon - r.coords[i - 1].lon) * 111000 * Math.cos((r.coords[i].lat * Math.PI) / 180);
+    distM += Math.hypot(dlat, dlon);
+    cumDist.push(distM);
+    const dEle = r.elevations[i] - r.elevations[i - 1];
+    if (dEle > 0) elevationGain += dEle;
+    else elevationLoss += Math.abs(dEle);
+  }
+
+  // Average bearing over first ~10% of route for a stable starting direction
+  const lookAhead = Math.max(2, Math.floor(r.coords.length * 0.10));
+  const startBearing = ((bearingDeg(r.coords[0], r.coords[Math.min(lookAhead, r.coords.length - 1)]) % 360) + 360) % 360;
+
+  const distanceKm = Math.round(distM / 100) / 10;
+  const elevationProfile = buildProfile(r.coords, r.elevations, cumDist, 100);
+  const durFactor = surface === 'gravel' ? 1.15 : surface === 'mixed' ? 1.05 : 0.95;
+  const maxEle = Math.round(distanceKm * 30);
+
+  return {
+    coordinates: r.coords,
+    elevationProfile,
+    distanceKm,
+    durationMin: Math.round(targetDurationMin * durFactor),
+    elevationGain: Math.min(Math.round(elevationGain), maxEle),
+    elevationLoss: Math.min(Math.round(elevationLoss), maxEle),
+    windScore: Math.round(windScore),
+    startBearing,
+    surface,
+    gradient,
+  };
+}
+
 async function generateWithOrs(
   apiKey: string,
   origin: RoutePoint,
@@ -187,70 +236,53 @@ async function generateWithOrs(
   windDirection: number,
   surface: SurfaceType,
   gradient: GradientLevel,
-): Promise<RouteResult> {
-  assertFinite('origin.lat', origin.lat);
-  assertFinite('origin.lon', origin.lon);
-  assertFinite('targetDistanceKm', targetDistanceKm);
+  bearingOffset = 0,
+): Promise<RouteResult[]> {
+  if (!Number.isFinite(origin.lat) || !Number.isFinite(origin.lon)) {
+    throw new Error(`Ungültige Koordinate: lon=${origin.lon}, lat=${origin.lat}`);
+  }
+  if (!Number.isFinite(targetDistanceKm)) {
+    throw new Error(`Ungültige Distanz: ${targetDistanceKm}`);
+  }
 
   const profile = orsProfile[surface];
-  const lengthM = targetDistanceKm * 1000;
-  const seeds = [1, 2, 3, 4, 5];
+  const side = (targetDistanceKm / 3) * 0.70;
+
+  const candidateWaypoints: RoutePoint[][] = [45, 135, 225, 315].map(theta => {
+    const t = theta + bearingOffset;
+    const wp1 = computeWaypoint(origin, t, side);
+    const wp2 = computeWaypoint(origin, t + 60, side);
+    return [origin, wp1, wp2, origin];
+  });
 
   const results = await Promise.allSettled(
-    seeds.map(seed => fetchOrsRoundTrip(apiKey, profile, origin, lengthM, seed, gradient))
+    candidateWaypoints.map(wps => fetchOrsViaWaypoints(apiKey, profile, wps, gradient))
   );
 
-  // Collect successful routes
-  const routes: OrsRouteData[] = results
+  const rawRoutes: OrsRouteData[] = results
     .filter((r): r is PromiseFulfilledResult<OrsRouteData> => r.status === 'fulfilled')
     .map(r => r.value);
 
-  if (routes.length === 0) throw new Error('Alle ORS-Anfragen fehlgeschlagen.');
+  // Discard candidates with wildly wrong distance (mountain profiles can detour 3×)
+  const minKm = targetDistanceKm * 0.4;
+  const maxKm = targetDistanceKm * 1.6;
+  const validRoutes = rawRoutes.filter(r => {
+    let distM = 0;
+    for (let i = 1; i < r.coords.length; i++) {
+      const dlat = (r.coords[i].lat - r.coords[i - 1].lat) * 111000;
+      const dlon = (r.coords[i].lon - r.coords[i - 1].lon) * 111000 * Math.cos((r.coords[i].lat * Math.PI) / 180);
+      distM += Math.hypot(dlat, dlon);
+    }
+    return distM / 1000 >= minKm && distM / 1000 <= maxKm;
+  });
 
-  // Score each and pick winner
-  const scored = routes.map(r => ({
-    data: r,
-    score: scoreRouteByWind(r.coords, windDirection),
-  }));
-  scored.sort((a, b) => b.score - a.score);
-  const best = scored[0].data;
+  if (validRoutes.length === 0) throw new Error('Für diese Kombination aus Distanz, Untergrund und Steigung konnte keine Route berechnet werden. Bitte andere Einstellungen versuchen.');
 
-  // Compute actual distance + elevation gain/loss from coordinates
-  let distM = 0;
-  let elevationGain = 0;
-  let elevationLoss = 0;
-  const cumDist: number[] = [0];
+  const scored = validRoutes
+    .map(r => ({ data: r, score: scoreRouteByWind(r.coords, windDirection) }))
+    .sort((a, b) => b.score - a.score);
 
-  for (let i = 1; i < best.coords.length; i++) {
-    const dlat = (best.coords[i].lat - best.coords[i - 1].lat) * 111000;
-    const dlon = (best.coords[i].lon - best.coords[i - 1].lon) * 111000 * Math.cos((best.coords[i].lat * Math.PI) / 180);
-    distM += Math.hypot(dlat, dlon);
-    cumDist.push(distM);
-
-    const dEle = best.elevations[i] - best.elevations[i - 1];
-    if (dEle > 0) elevationGain += dEle;
-    else elevationLoss += Math.abs(dEle);
-  }
-
-  const distanceKm = Math.round(distM / 100) / 10;
-
-  // Sample elevation profile to ~100 points for the chart
-  const elevationProfile = buildProfile(best.coords, best.elevations, cumDist, 100);
-
-  const durFactor = surface === 'gravel' ? 1.15 : surface === 'mixed' ? 1.05 : 0.95;
-  const durationMin = Math.round(targetDurationMin * durFactor);
-
-  return {
-    coordinates: best.coords,
-    elevationProfile,
-    distanceKm,
-    durationMin,
-    elevationGain: Math.round(elevationGain),
-    elevationLoss: Math.round(elevationLoss),
-    windScore: Math.round(scored[0].score),
-    surface,
-    gradient,
-  };
+  return scored.map(s => orsDataToResult(s.data, s.score, targetDurationMin, surface, gradient));
 }
 
 function buildProfile(
@@ -276,61 +308,6 @@ function buildProfile(
   return profile;
 }
 
-// ── Mock fallback ─────────────────────────────────────────────────────────────
-
-function generateMock(
-  origin: RoutePoint,
-  targetDistanceKm: number,
-  targetDurationMin: number,
-  windDirection: number,
-  surface: SurfaceType,
-  gradient: GradientLevel,
-): RouteResult {
-  const radiusKm = targetDistanceKm / (2 * Math.PI);
-  const radiusDeg = radiusKm / 111;
-  const towardWindRad = (windDirection * Math.PI) / 180;
-  const offsetLat = Math.cos(towardWindRad) * radiusDeg * 0.25;
-  const offsetLon = Math.sin(towardWindRad) * radiusDeg * 0.25;
-  const points: RoutePoint[] = [origin];
-  for (let i = 0; i <= 24; i++) {
-    const angle = (i / 24) * 2 * Math.PI;
-    points.push({
-      lat: origin.lat + offsetLat + Math.cos(angle) * radiusDeg,
-      lon: origin.lon + offsetLon + Math.sin(angle) * radiusDeg * 1.3,
-    });
-  }
-  points.push({ ...origin });
-  const elevFactor = surface === 'gravel' ? 14 : surface === 'mixed' ? 10 : 8.5;
-  const durFactor  = surface === 'gravel' ? 1.15 : surface === 'mixed' ? 1.05 : 0.95;
-  const distanceKm = Math.round(targetDistanceKm * 0.97 * 10) / 10;
-  const elevationGain = Math.round(distanceKm * elevFactor);
-
-  // Simulate a plausible elevation profile
-  const samples = 60;
-  const elevationProfile: ElevationPoint[] = Array.from({ length: samples + 1 }, (_, i) => {
-    const t = i / samples;
-    const angle = t * 2 * Math.PI;
-    const base = 300;
-    const amp = elevationGain / 4;
-    return {
-      distanceKm: Math.round(distanceKm * t * 10) / 10,
-      elevationM: Math.round(base + amp * Math.sin(angle) + amp * 0.4 * Math.sin(angle * 3)),
-    };
-  });
-
-  return {
-    coordinates: points,
-    elevationProfile,
-    distanceKm,
-    durationMin:  Math.round(targetDurationMin * durFactor),
-    elevationGain,
-    elevationLoss: elevationGain,
-    windScore: Math.round(scoreRouteByWind(points, windDirection)),
-    surface,
-    gradient,
-  };
-}
-
 // ── Public entry point ────────────────────────────────────────────────────────
 
 export async function generateOptimalLoop(
@@ -338,18 +315,13 @@ export async function generateOptimalLoop(
   targetDistanceKm: number,
   targetDurationMin: number,
   windDirection: number,
-  _windSpeed: number,
   surface: SurfaceType = 'road',
   gradient: GradientLevel = 'any',
-): Promise<RouteResult> {
+  bearingOffset = 0,
+): Promise<RouteResult[]> {
   const apiKey = getOrsApiKey();
-  if (apiKey) {
-    try {
-      return await generateWithOrs(apiKey, origin, targetDistanceKm, targetDurationMin, windDirection, surface, gradient);
-    } catch (e) {
-      console.error('ORS fehlgeschlagen, Fallback auf Mock:', e);
-    }
+  if (!apiKey) {
+    throw new Error('Kein ORS-API-Key hinterlegt. Bitte in den Einstellungen eintragen.');
   }
-  await new Promise(r => setTimeout(r, 1200));
-  return generateMock(origin, targetDistanceKm, targetDurationMin, windDirection, surface, gradient);
+  return generateWithOrs(apiKey, origin, targetDistanceKm, targetDurationMin, windDirection, surface, gradient, bearingOffset);
 }

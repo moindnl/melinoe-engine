@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import {
-    Navigation, Loader, Wind, Download,
-    Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, BookOpen, Droplet
+    Navigation, Loader, Wind, Download, Route,
+    Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, BookOpen, Droplet,
+    User, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -50,6 +51,10 @@
   ];
 
   // --- State ---
+  type PlanMode = 'distance' | 'duration';
+  const avgSpeedKmh: Record<SurfaceType, number> = { road: 28, mixed: 24, gravel: 20 };
+
+  let planMode = $state<PlanMode>('distance');
   let distanceKm = $state(60);
   let durationMin = $state(120);
   function nowString() {
@@ -61,13 +66,28 @@
   let startTime = $state(nowString());
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
+
+  const targetDistanceKm = $derived(
+    planMode === 'distance'
+      ? distanceKm
+      : Math.round(avgSpeedKmh[surface] * durationMin / 60)
+  );
+  const targetDurationMin = $derived(
+    planMode === 'duration'
+      ? durationMin
+      : Math.round(distanceKm / avgSpeedKmh[surface] * 60)
+  );
   let location = $state<{ lat: number; lon: number } | null>(null);
   let locating = $state(false);
   let locError = $state('');
   let loading = $state(false);
   let calcError = $state('');
   let weather = $state<WeatherData | null>(null);
-  let route = $state<RouteResult | null>(null);
+  let allRoutes = $state<RouteResult[]>([]);
+  let routeIndex = $state(0);
+  let loadingMore = $state(false);
+  let bearingOffset = $state(0);
+  const route = $derived(allRoutes[routeIndex] ?? null);
   let tips = $state<string[]>([]);
   let timePicked = $state(false);
   let timePickerOpen = $state(false);
@@ -141,11 +161,12 @@
 
   async function calculate() {
     if (!location) { locError = 'Bitte zuerst Standort ermitteln.'; return; }
-    loading = true; route = null; weather = null; tips = []; calcError = '';
+    loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
-      const r = await generateOptimalLoop(location, distanceKm, durationMin, w.windDirection, w.windSpeed, surface, gradient);
-      weather = w; route = r; tips = generateRouteTips(w, r);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, targetDurationMin, w.windDirection, surface, gradient, 0);
+      weather = w; allRoutes = routes; routeIndex = 0;
+      tips = generateRouteTips(w, routes[0]);
       setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (e) {
       calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
@@ -155,7 +176,21 @@
     }
   }
 
-  const conditionIcon = { sunny: Sun, cloudy: Cloud, rainy: CloudRain, windy: Wind };
+  async function loadMoreRoutes() {
+    if (!location || !weather) return;
+    loadingMore = true; calcError = '';
+    try {
+      const offset = bearingOffset + 22.5;
+      const routes = await generateOptimalLoop(location, targetDistanceKm, targetDurationMin, weather.windDirection, surface, gradient, offset);
+      bearingOffset = offset;
+      allRoutes = [...allRoutes, ...routes];
+    } catch (e) {
+      calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
+    } finally {
+      loadingMore = false;
+    }
+  }
+
   const conditionLabel: Record<string, string> = { sunny: 'Sonnig', cloudy: 'Bewölkt', rainy: 'Regen', windy: 'Windig' };
   const conditionColor: Record<string, string> = { sunny: '#fa6e39', cloudy: '#5c6c7a', rainy: '#00ed64', windy: '#7b3ff2' };
 
@@ -168,6 +203,7 @@
     return () => clearInterval(t);
   });
 
+  $effect(() => { if (route && weather) tips = generateRouteTips(weather, route); });
   const avgSpeed = $derived(route ? Math.round((route.distanceKm / route.durationMin) * 60 * 10) / 10 : 0);
   const arrowRot = $derived(weather ? (weather.windDirection + 180) % 360 : 0);
   const isNight = $derived(new Date().getHours() >= 23 || new Date().getHours() < 5);
@@ -190,6 +226,7 @@
   const scoreColor = $derived(route
     ? route.windScore >= 60 ? '#00ed64' : route.windScore >= 40 ? '#fa6e39' : '#e74c3c'
     : '#00ed64');
+
 </script>
 
 <svelte:head><title>TrailBlazer Ultra</title></svelte:head>
@@ -234,23 +271,57 @@
       {#if userName}
         <span class="text-sm font-bold text-mdb-ink">{userName[0].toUpperCase()}</span>
       {:else}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#001e2b" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-        </svg>
+        <User size={16} color="#001e2b" strokeWidth={2.5} aria-hidden="true" />
       {/if}
     </button>
 
     <!-- Title -->
-    <div class="flex items-center justify-center gap-3">
-      <svg width="36" height="36" viewBox="0 0 40 40" fill="none" aria-hidden="true" role="presentation"
-        style="overflow: visible"
-        class={isNight ? 'bolt-glow' : ''}
-      >
-        <rect x="4" y="4" width="32" height="32" rx="10" fill="#00ed64" fill-opacity="0.12" stroke="#00ed64" stroke-width="1.5"/>
-        <path d="M22 8 L14 21 H20 L18 32 L26 19 H20 L22 8Z" fill="white"/>
-        <path d="M22 8 L14 21 H20 L18 32 L26 19 H20 L22 8Z" fill="#00ed64" fill-opacity="0.3"/>
-      </svg>
-      <h1 class="text-3xl font-bold text-white tracking-tight">TrailBlazer <span class="text-mdb-green">Ultra</span></h1>
+    <div class="flex items-center justify-center">
+      <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+        TrailBlazer
+        <div style="
+          border-radius: 22.4%;
+          overflow: hidden;
+          width: 36px; height: 36px;
+          flex-shrink: 0;
+          box-shadow: 0 0 0 1.5px rgba(0,237,100,0.45), 0 2px 8px rgba(0,0,0,0.5);
+        " class={isNight ? 'bolt-glow' : ''}>
+          <svg width="36" height="36" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation">
+            <defs>
+              <radialGradient id="hdr-bg" cx="40%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#013a2a"/>
+                <stop offset="100%" stop-color="#001018"/>
+              </radialGradient>
+              <radialGradient id="hdr-amb" cx="50%" cy="20%" r="50%">
+                <stop offset="0%" stop-color="#00ed64" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#00ed64" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="hdr-glass" cx="50%" cy="-10%" r="75%" gradientUnits="objectBoundingBox">
+                <stop offset="0%"   stop-color="white" stop-opacity="0.28"/>
+                <stop offset="55%"  stop-color="white" stop-opacity="0.05"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+              <filter id="hdr-bloom" x="-25%" y="-25%" width="150%" height="150%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <clipPath id="hdr-clip">
+                <rect width="512" height="512" rx="115" ry="115"/>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#hdr-clip)">
+              <rect width="512" height="512" fill="url(#hdr-bg)"/>
+              <rect width="512" height="512" fill="url(#hdr-amb)"/>
+              <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64" fill-opacity="0.28" filter="url(#hdr-bloom)"/>
+              <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64"/>
+              <rect width="512" height="512" fill="url(#hdr-glass)"/>
+              <rect width="512" height="2.5" fill="white" fill-opacity="0.18"/>
+            </g>
+            <rect width="512" height="512" rx="115" ry="115" fill="none" stroke="white" stroke-opacity="0.10" stroke-width="3"/>
+          </svg>
+        </div>
+        <span class="text-mdb-green">Ultra</span>
+      </h1>
     </div>
 
     <!-- Greeting -->
@@ -327,24 +398,43 @@
       </div>
     </div>
 
-    <!-- ── Distanz ── -->
+    <!-- ── Distanz / Dauer ── -->
     <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4">
-      <div class="flex justify-between items-baseline mb-3">
-        <span class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Distanz</span>
-        <span class="text-2xl font-semibold text-mdb-ink">{distanceKm}<span class="text-sm font-normal text-mdb-steel ml-1">km</span></span>
+      <!-- Mode toggle -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex bg-mdb-surface rounded-full p-0.5 border border-mdb-hairline">
+          {#each ([['distance', 'Distanz'], ['duration', 'Dauer']] as [PlanMode, string][]) as [mode, label]}
+            {#key planMode === mode}
+              <button
+                onclick={() => planMode = mode}
+                class="px-4 py-1.5 rounded-full text-xs font-semibold transition-colors pill-active
+                  {planMode === mode ? 'bg-mdb-green text-mdb-ink' : 'text-mdb-steel'}"
+              >{label}</button>
+            {/key}
+          {/each}
+        </div>
+        <span class="text-2xl font-semibold text-mdb-ink">
+          {#if planMode === 'distance'}
+            {distanceKm}<span class="text-sm font-normal text-mdb-steel ml-1">km</span>
+          {:else}
+            {fmt(durationMin)}
+          {/if}
+        </span>
       </div>
-      <input type="range" min="20" max="200" step="5" bind:value={distanceKm} class="w-full" aria-label="Distanz in Kilometern" />
-      <div class="flex justify-between text-xs text-mdb-steel mt-1"><span>20 km</span><span>200 km</span></div>
-    </div>
 
-    <!-- ── Dauer ── -->
-    <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4">
-      <div class="flex justify-between items-baseline mb-3">
-        <span class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Dauer</span>
-        <span class="text-2xl font-semibold text-mdb-ink">{fmt(durationMin)}</span>
-      </div>
-      <input type="range" min="30" max="360" step="15" bind:value={durationMin} class="w-full" aria-label="Dauer in Minuten" />
-      <div class="flex justify-between text-xs text-mdb-steel mt-1"><span>30 min</span><span>6 h</span></div>
+      {#if planMode === 'distance'}
+        <input type="range" min="20" max="200" step="5" bind:value={distanceKm} class="w-full" aria-label="Distanz in Kilometern" />
+        <div class="flex justify-between text-xs text-mdb-steel mt-1">
+          <span>20 km</span>
+          <span>200 km</span>
+        </div>
+      {:else}
+        <input type="range" min="30" max="360" step="15" bind:value={durationMin} class="w-full" aria-label="Dauer in Minuten" />
+        <div class="flex justify-between text-xs text-mdb-steel mt-1">
+          <span>30 min</span>
+          <span>6 h</span>
+        </div>
+      {/if}
     </div>
 
     <!-- ── Untergrund ── -->
@@ -371,7 +461,7 @@
     <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4">
       <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Max. Steigung</div>
       <div class="grid grid-cols-4 gap-1.5">
-        {#each (['flat', 'moderate', 'hilly', 'any'] as GradientLevel[]) as g}
+        {#each (['any', 'flat', 'moderate', 'hilly'] as GradientLevel[]) as g}
           {#key gradient === g}
             <button
               onclick={() => gradient = g}
@@ -423,14 +513,20 @@
       {#if loading}
         <Loader size={15} class="animate-spin" />Wird berechnet…
       {:else if distanceKm === 200 && gradient === 'any'}
-        <Wind size={15} />Tadej? Bist du es?
+        <Route size={15} />Tadej? Bist du es?
       {:else}
-        <Wind size={15} />Route berechnen
+        <Route size={15} />Route berechnen
       {/if}
     </button>
 
     {#if calcError}
-      <div class="bg-red-50 border border-red-200 rounded-mdb-lg px-4 py-3 text-xs text-red-700">{calcError}</div>
+      <div class="rounded-mdb-lg border border-mdb-hairline bg-mdb-canvas p-4 space-y-2">
+        <div class="flex items-center gap-2 text-red-400 font-semibold text-sm">
+          <Info size={16} />
+          Keine Route gefunden
+        </div>
+        <p class="text-xs text-mdb-steel leading-relaxed">{calcError}</p>
+      </div>
     {/if}
 
     <!-- ── Loading Steps ── -->
@@ -441,7 +537,7 @@
             <div class="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center
               {i < stepIdx ? 'bg-mdb-green' : i === stepIdx ? 'bg-mdb-green animate-pulse' : 'bg-mdb-teal-mid border border-mdb-hairline-dark'}">
               {#if i < stepIdx}
-                <svg width="8" height="6" viewBox="0 0 8 6"><path d="M1 3l1.8 2L7 1" stroke="#001e2b" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                <Check size={8} color="#001e2b" strokeWidth={2.5} />
               {/if}
             </div>
             <span class="text-sm {i < stepIdx ? 'text-mdb-on-dark-muted' : i === stepIdx ? 'text-white font-medium' : 'text-mdb-on-dark-muted/60'}">{step}</span>
@@ -461,27 +557,74 @@
           </div>
         {/if}
 
+        <!-- Route navigation -->
+        <div class="result-card flex items-center gap-2" style="animation-delay: 40ms">
+          <button
+            onclick={() => { if (routeIndex > 0) routeIndex--; }}
+            disabled={routeIndex === 0}
+            class="w-9 h-9 rounded-full border border-mdb-hairline flex items-center justify-center text-mdb-steel disabled:opacity-30 active:scale-95 transition-transform"
+            aria-label="Vorherige Route"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          <div class="flex-1 flex items-center justify-center gap-1.5">
+            {#each allRoutes as _, i}
+              <button
+                onclick={() => routeIndex = i}
+                class="rounded-full transition-all {i === routeIndex ? 'w-4 h-2 bg-mdb-green' : 'w-2 h-2 bg-mdb-steel/30'}"
+                aria-label="Route {i + 1}"
+              ></button>
+            {/each}
+            {#if !loadingMore}
+              <button
+                onclick={loadMoreRoutes}
+                class="w-2 h-2 rounded-full border border-mdb-steel/40 flex items-center justify-center ml-0.5"
+                aria-label="Weitere Routen laden"
+                title="Weitere Routen laden"
+              >
+                <Plus size={8} strokeWidth={3} />
+              </button>
+            {:else}
+              <div class="w-2 h-2 rounded-full border border-mdb-green/60 border-t-mdb-green animate-spin ml-0.5"></div>
+            {/if}
+          </div>
+
+          <button
+            onclick={() => { if (routeIndex < allRoutes.length - 1) routeIndex++; }}
+            disabled={routeIndex === allRoutes.length - 1}
+            class="w-9 h-9 rounded-full border border-mdb-hairline flex items-center justify-center text-mdb-steel disabled:opacity-30 active:scale-95 transition-transform"
+            aria-label="Nächste Route"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
         <!-- Stats -->
         <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 80ms">
-          <div class="grid grid-cols-3 divide-x divide-mdb-hairline">
-            <div class="flex flex-col items-center gap-1 px-2">
+          <div class="grid grid-cols-2 gap-y-4">
+            <div class="flex flex-col items-center gap-1 border-r border-mdb-hairline">
               <Gauge size={15} color="#5c6c7a" />
               <span class="text-xl font-semibold text-mdb-ink">{route.distanceKm}</span>
               <span class="text-xs text-mdb-steel">km</span>
             </div>
-            <div class="flex flex-col items-center gap-1 px-2">
+            <div class="flex flex-col items-center gap-1">
               <Timer size={15} color="#5c6c7a" />
               <span class="text-xl font-semibold text-mdb-ink">{fmt(route.durationMin)}</span>
               <span class="text-xs text-mdb-steel">Dauer</span>
             </div>
-            <div class="flex flex-col items-center gap-1 px-2">
+            <div class="flex flex-col items-center gap-1 border-r border-t border-mdb-hairline pt-4">
               <MoveUp size={15} color="#5c6c7a" />
               <span class="text-xl font-semibold text-mdb-ink">{route.elevationGain}</span>
               <span class="text-xs text-mdb-steel">m Hm</span>
             </div>
-          </div>
-          <div class="mt-3 pt-3 border-t border-mdb-hairline text-center">
-            <span class="text-xs text-mdb-steel">Ø {avgSpeed} km/h</span>
+            <div class="flex flex-col items-center gap-1 border-t border-mdb-hairline pt-4">
+              <!-- Rotating compass arrow -->
+              <ArrowUp size={15} color="#5c6c7a"
+                style="transform: rotate({route.startBearing}deg); transition: transform 0.4s ease" />
+              <span class="text-xl font-semibold text-mdb-ink">{windDirectionLabel(route.startBearing)}</span>
+              <span class="text-xs text-mdb-steel">Startrichtung</span>
+            </div>
           </div>
         </div>
 
@@ -570,7 +713,7 @@
 
         <!-- Reset -->
         <button
-          onclick={() => { route = null; weather = null; tips = []; location = null; timePicked = false; }}
+          onclick={() => { allRoutes = []; routeIndex = 0; weather = null; tips = []; location = null; timePicked = false; }}
           class="result-card w-full border border-mdb-hairline-strong text-mdb-steel rounded-full py-3.5 text-sm font-medium active:scale-[0.97] transition-transform"
           style="animation-delay: 480ms"
         >
@@ -587,13 +730,51 @@
   <div class="mt-6 bg-mdb-canvas border-t border-mdb-hairline" style="padding-bottom: calc(env(safe-area-inset-bottom) + 32px)">
     <div class="px-5 pt-5 pb-2">
       <!-- App name -->
-      <div class="flex items-center justify-center gap-2.5 mb-4">
-        <svg width="26" height="26" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <rect x="4" y="4" width="32" height="32" rx="10" fill="#00ed64" fill-opacity="0.15" stroke="#00ed64" stroke-width="1.5"/>
-          <path d="M22 8 L14 21 H20 L18 32 L26 19 H20 L22 8Z" fill="#001e2b"/>
-          <path d="M22 8 L14 21 H20 L18 32 L26 19 H20 L22 8Z" fill="#00ed64" fill-opacity="0.5"/>
-        </svg>
-        <span class="text-base font-bold text-mdb-ink tracking-tight">TrailBlazer <span class="text-mdb-green-mid">Ultra</span></span>
+      <div class="flex items-center justify-center mb-4">
+        <span class="text-base font-bold text-mdb-ink tracking-tight flex items-center gap-1.5">
+          TrailBlazer
+          <div style="
+            border-radius: 22.4%;
+            overflow: hidden;
+            width: 22px; height: 22px;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1.5px rgba(0,237,100,0.45), 0 2px 6px rgba(0,0,0,0.4);
+          ">
+            <svg width="22" height="22" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation">
+              <defs>
+                <radialGradient id="ftr-bg" cx="40%" cy="30%" r="70%">
+                  <stop offset="0%" stop-color="#013a2a"/>
+                  <stop offset="100%" stop-color="#001018"/>
+                </radialGradient>
+                <radialGradient id="ftr-amb" cx="50%" cy="20%" r="50%">
+                  <stop offset="0%" stop-color="#00ed64" stop-opacity="0.18"/>
+                  <stop offset="100%" stop-color="#00ed64" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="ftr-glass" cx="50%" cy="-10%" r="75%" gradientUnits="objectBoundingBox">
+                  <stop offset="0%"   stop-color="white" stop-opacity="0.24"/>
+                  <stop offset="55%"  stop-color="white" stop-opacity="0.04"/>
+                  <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                </radialGradient>
+                <filter id="ftr-bloom" x="-25%" y="-25%" width="150%" height="150%">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <clipPath id="ftr-clip">
+                  <rect width="512" height="512" rx="115" ry="115"/>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#ftr-clip)">
+                <rect width="512" height="512" fill="url(#ftr-bg)"/>
+                <rect width="512" height="512" fill="url(#ftr-amb)"/>
+                <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64" fill-opacity="0.28" filter="url(#ftr-bloom)"/>
+                <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64"/>
+                <rect width="512" height="512" fill="url(#ftr-glass)"/>
+                <rect width="512" height="2.5" fill="white" fill-opacity="0.18"/>
+              </g>
+            </svg>
+          </div>
+          <span class="text-mdb-green-mid">Ultra</span>
+        </span>
       </div>
       <!-- Links + copyright -->
       <div class="flex items-center justify-center gap-3">

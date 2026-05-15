@@ -42,7 +42,7 @@
       });
 
       const el = document.createElement('div');
-      el.style.cssText = 'width:20px;height:20px;background:#007AFF;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)';
+      el.style.cssText = `width:20px;height:20px;background:${lineColor};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)`;
       new maplibregl.Marker({ element: el })
         .setLngLat([origin.lon, origin.lat])
         .addTo(map!);
