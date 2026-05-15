@@ -48,6 +48,7 @@ export interface ElevationPoint {
 
 export interface RouteResult {
   coordinates: RoutePoint[];
+  elevations: number[];
   elevationProfile: ElevationPoint[];
   distanceKm: number;
   durationMin: number;
@@ -93,7 +94,9 @@ function scoreRouteByWind(coords: RoutePoint[], windFromDeg: number): number {
     const bearing = bearingDeg(coords[i - 1], coords[i]);
     const diff = ((bearing - windToDeg + 540) % 360) - 180;
     const alignment = Math.cos((diff * Math.PI) / 180); // 1=tailwind, -1=headwind
-    const segLen = Math.hypot(coords[i].lon - coords[i - 1].lon, coords[i].lat - coords[i - 1].lat);
+    const dLon = (coords[i].lon - coords[i - 1].lon) * Math.cos(coords[i].lat * Math.PI / 180);
+    const dLat = coords[i].lat - coords[i - 1].lat;
+    const segLen = Math.hypot(dLon, dLat);
     // Weight second half more (tailwind home)
     const posWeight = 0.5 + (i / n) * 0.5;
     score += alignment * segLen * posWeight;
@@ -173,6 +176,9 @@ async function fetchOrsViaWaypoints(
     }
 
     const data = await res.json();
+    if (!data?.features?.[0]?.geometry?.coordinates) {
+      throw new Error(`ORS: Ungültige Antwort vom Server`);
+    }
     const geom: [number, number, number?][] = data.features[0].geometry.coordinates;
     return {
       coords:     geom.map(([lon, lat]) => ({ lat, lon })),
@@ -211,15 +217,14 @@ function orsDataToResult(
 
   const distanceKm = Math.round(distM / 100) / 10;
   const elevationProfile = buildProfile(r.coords, r.elevations, cumDist, 100);
-  const maxEle = Math.round(distanceKm * 30);
-
   return {
     coordinates: r.coords,
+    elevations: r.elevations,
     elevationProfile,
     distanceKm,
     durationMin: Math.round(distanceKm / speedKmh * 60),
-    elevationGain: Math.min(Math.round(elevationGain), maxEle),
-    elevationLoss: Math.min(Math.round(elevationLoss), maxEle),
+    elevationGain: Math.round(elevationGain),
+    elevationLoss: Math.round(elevationLoss),
     windScore: Math.round(windScore),
     startBearing,
     surface,
@@ -290,7 +295,7 @@ function buildProfile(
   cumDist: number[],
   samples: number,
 ): ElevationPoint[] {
-  if (coords.length === 0) return [];
+  if (coords.length < 2) return [];
   const totalM = cumDist[cumDist.length - 1];
   const step = totalM / samples;
   const profile: ElevationPoint[] = [];

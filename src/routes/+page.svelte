@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import {
@@ -225,7 +225,8 @@
       weather = w; allRoutes = routes; routeIndex = 0;
       tips = generateRouteTips(w, routes[0]);
       saveSession();
-      setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
+      await tick();
+      document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
       calcError = e instanceof Error ? e.message : 'Unbekannter Fehler.';
     } finally {
@@ -237,7 +238,7 @@
     if (!location || !weather) return;
     loadingMore = true; calcError = '';
     try {
-      const offset = bearingOffset + 22.5;
+      const offset = (bearingOffset + 22.5) % 360;
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset);
       bearingOffset = offset;
       allRoutes = [...allRoutes, ...routes];
@@ -315,7 +316,7 @@
 
   $effect(() => { if (route && weather) tips = generateRouteTips(weather, route); });
   const arrowRot = $derived(weather ? (weather.windDirection + 180) % 360 : 0);
-  const isNight = $derived(new Date().getHours() >= 23 || new Date().getHours() < 5);
+  const isNight = $derived((() => { const h = new Date().getHours(); return h >= 23 || h < 5; })());
 
   const stars = [
     { top: '12%', left: '7%',  size: 2, dur: '2.1s', delay: '0s'    },
@@ -627,7 +628,7 @@
     >
       {#if loading}
         <Loader size={15} class="animate-spin" />Wird berechnet…
-      {:else if distanceKm === 200 && gradient === 'any'}
+      {:else if planMode === 'distance' && distanceKm === 200 && gradient === 'any'}
         <Route size={15} />Tadej? Bist du es?
       {:else}
         <Route size={15} />Route berechnen

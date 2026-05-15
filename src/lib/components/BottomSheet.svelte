@@ -1,19 +1,23 @@
+<script module>
+  let openCount = 0;
+</script>
+
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { onDestroy } from 'svelte';
-  let { open = $bindable(false), title = '', children }: { open: boolean; title?: string; children?: any } = $props();
+  import type { Snippet } from 'svelte';
+
+  let { open = $bindable(false), title = '', children }: { open: boolean; title?: string; children?: Snippet } = $props();
 
   $effect(() => {
     if (open) {
+      openCount++;
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      return () => {
+        openCount--;
+        if (openCount === 0) document.body.style.overflow = '';
+      };
     }
-  });
-
-  onDestroy(() => {
-    document.body.style.overflow = '';
   });
 
   let dragY = $state(0);

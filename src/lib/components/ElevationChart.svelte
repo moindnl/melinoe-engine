@@ -7,6 +7,8 @@
     loss: number;
   } = $props();
 
+  const gradientId = `ele-fill-${Math.random().toString(36).slice(2)}`;
+
   const W = 320;
   const H = 100;
   const padL = 36;
@@ -67,7 +69,7 @@
     aria-label="Höhenprofil"
   >
     <defs>
-      <linearGradient id="ele-fill" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#00ed64" stop-opacity="0.45" />
         <stop offset="100%" stop-color="#00ed64" stop-opacity="0" />
       </linearGradient>
@@ -80,7 +82,7 @@
     {/each}
 
     <!-- Fill -->
-    <path d={fillPath} fill="url(#ele-fill)" />
+    <path d={fillPath} fill="url(#{gradientId})" />
 
     <!-- Line -->
     <path d={linePath} fill="none" stroke="#00ed64" stroke-width="1.5"

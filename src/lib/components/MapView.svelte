@@ -47,10 +47,12 @@
         .setLngLat([origin.lon, origin.lat])
         .addTo(map!);
 
-      const lons = coordinates.map(p => p.lon);
-      const lats = coordinates.map(p => p.lat);
+      const minLon = coordinates.reduce((m, p) => Math.min(m, p.lon), Infinity);
+      const maxLon = coordinates.reduce((m, p) => Math.max(m, p.lon), -Infinity);
+      const minLat = coordinates.reduce((m, p) => Math.min(m, p.lat), Infinity);
+      const maxLat = coordinates.reduce((m, p) => Math.max(m, p.lat), -Infinity);
       map!.fitBounds(
-        [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+        [[minLon, minLat], [maxLon, maxLat]],
         { padding: 40, duration: 800 }
       );
     });
