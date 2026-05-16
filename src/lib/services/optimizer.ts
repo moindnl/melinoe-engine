@@ -12,7 +12,7 @@ export function generateRouteTips(weather: WeatherData, route: RouteResult): str
   } else if (weather.temperature > 28) {
     tips.push('Hitze: Mindestens 750 ml pro Stunde trinken. Sonnencreme auf Arme und Nacken.');
   } else {
-    tips.push(`Angenehme ${weather.temperature} °C — ideale Rennradbedingungen. Kurztrikot reicht.`);
+    tips.push('Ideale Bedingungen — gute Gelegenheit für Tempo- oder Intervalltraining.');
   }
 
   // Wind speed tip (only when notable)
