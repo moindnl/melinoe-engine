@@ -1182,11 +1182,6 @@
           </button>
         </div>
 
-        <!-- Disclaimer -->
-        <p class="text-xs text-mdb-steel px-1">
-          Route auf Basis offener Kartendaten — Sperrungen bitte vor der Fahrt prüfen.
-        </p>
-
         <!-- Load more routes -->
         <button
           onclick={loadMoreRoutes}
@@ -1366,6 +1361,11 @@
 
         </div>
         {/key}
+
+        <!-- Disclaimer -->
+        <p class="text-xs text-mdb-steel px-1">
+          Route auf Basis offener Kartendaten — Sperrungen bitte vor der Fahrt prüfen.
+        </p>
 
         <!-- Share + GPX Export -->
         <div class="result-card grid grid-cols-2 gap-2" style="animation-delay: 400ms">
