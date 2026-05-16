@@ -1368,6 +1368,12 @@
         <!-- Share + GPX Export -->
         <div class="result-card grid grid-cols-2 gap-2" style="animation-delay: 400ms">
           <button
+            onclick={() => route && downloadGPX(route, `Tour_${new Date().toISOString().slice(0,10)}`)}
+            class="bg-mdb-teal text-white font-semibold rounded-full py-4 text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+          >
+            <Download size={15} />GPX
+          </button>
+          <button
             onclick={shareRoute}
             class="flex items-center justify-center gap-2 py-4 rounded-full border border-mdb-hairline-strong text-mdb-slate text-sm font-semibold active:scale-[0.97] transition-transform"
           >
@@ -1377,12 +1383,6 @@
             {:else}
               <Share2 size={15} />Teilen
             {/if}
-          </button>
-          <button
-            onclick={() => route && downloadGPX(route, `Tour_${new Date().toISOString().slice(0,10)}`)}
-            class="bg-mdb-teal text-white font-semibold rounded-full py-4 text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
-          >
-            <Download size={15} />GPX
           </button>
         </div>
 
