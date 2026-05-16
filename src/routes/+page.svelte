@@ -712,7 +712,7 @@
 
 <svelte:head><title>souplesse Ultra</title></svelte:head>
 
-<div class="min-h-screen bg-mdb-surface font-sans">
+<div class="min-h-screen bg-mdb-canvas font-sans">
 
   <!-- ── Header ── -->
   <div class="px-5 pb-4 relative overflow-hidden transition-colors duration-1000"
@@ -1366,8 +1366,9 @@
   <div class="mt-6 bg-mdb-canvas border-t border-mdb-hairline footer-bottom">
     <div class="px-5 pt-5 pb-2">
       <!-- App name -->
-      <div class="flex items-center justify-center mb-4">
+      <div class="flex flex-col items-center mb-4 leading-none">
         <span class="text-base font-bold text-mdb-ink tracking-tight">souplesse <span class="text-mdb-green">Ultra</span></span>
+        <span class="text-[11px] font-bold text-mdb-green/70 tracking-wide mt-0.5">Le vent tourne</span>
       </div>
       <!-- Links + copyright -->
       <div class="flex items-center justify-center gap-3">
@@ -1401,9 +1402,6 @@
           <span class="text-xs text-mdb-steel font-medium">{BUILD_NAME}</span>
         </button>
       </div>
-      <p class="text-center text-[10px] text-mdb-steel/50 italic mt-4 px-6 leading-relaxed">
-        „Ride as much or as little, as long or as short as you feel. But ride."
-      </p>
     </div>
   </div>
 

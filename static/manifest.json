@@ -1,7 +1,7 @@
 {
   "name": "souplesse Ultra",
   "short_name": "souplesse",
-  "description": "Wind-optimised road cycling route planner",
+  "description": "Le vent tourne.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#001e2b",
