@@ -719,8 +719,8 @@
 <div class="min-h-screen bg-mdb-surface font-sans">
 
   <!-- ── Header ── -->
-  <div class="px-5 pb-8 relative overflow-hidden transition-colors duration-1000 rounded-b-[2rem]"
-    style="padding-top: calc(env(safe-area-inset-top) + 1.25rem); background: {isNight ? 'linear-gradient(160deg, #020812 0%, #050d1f 60%, #001e2b 100%)' : '#001e2b'}; box-shadow: 0 4px 24px rgba(0,0,0,0.35)">
+  <div class="px-5 pb-4 relative overflow-hidden transition-colors duration-1000"
+    style="padding-top: calc(env(safe-area-inset-top) + 1rem); background: {isNight ? 'linear-gradient(160deg, #020812 0%, #050d1f 60%, #001e2b 100%)' : '#001e2b'}; box-shadow: 0 1px 0 rgba(255,255,255,0.06)">
 
     <!-- Night sky easter egg -->
     {#if isNight}
@@ -746,34 +746,19 @@
       {/each}
     {/if}
 
-    <!-- Header row: Avatar | Title | Spacer -->
-    <div class="flex items-center justify-between mb-2">
+    <!-- Wordmark left · Avatar right -->
+    <div class="flex items-center justify-between">
 
-      <!-- Avatar left -->
-      <button
-        onclick={() => profileOpen = true}
-        aria-label="Profil"
-        class="w-9 h-9 rounded-full border border-mdb-green/40 flex items-center justify-center active:opacity-70 transition-opacity flex-shrink-0"
-      style="background: rgba(0,237,100,0.15)"
-      >
-        {#if userName}
-          <UserRound size={16} color="white" strokeWidth={2} aria-hidden="true" />
-        {:else}
-          <UserRoundPlus size={16} color="white" strokeWidth={2} aria-hidden="true" />
-        {/if}
-      </button>
-
-      <!-- Title center -->
-      <h1 class="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
-        TrailBlazer
+      <!-- Wordmark -->
+      <h1 class="flex items-center gap-2">
         <div style="
           border-radius: 22.4%;
           overflow: hidden;
-          width: 36px; height: 36px;
+          width: 28px; height: 28px;
           flex-shrink: 0;
-          box-shadow: 0 0 0 1.5px rgba(0,237,100,0.45), 0 2px 8px rgba(0,0,0,0.5);
+          box-shadow: 0 0 0 1.5px rgba(0,237,100,0.45), 0 2px 6px rgba(0,0,0,0.4);
         " class={isNight ? 'bolt-glow' : ''}>
-          <svg width="36" height="36" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation">
+          <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation">
             <defs>
               <radialGradient id="hdr-bg" cx="40%" cy="30%" r="70%">
                 <stop offset="0%" stop-color="#013a2a"/>
@@ -807,20 +792,23 @@
             <rect width="512" height="512" rx="115" ry="115" fill="none" stroke="white" stroke-opacity="0.10" stroke-width="3"/>
           </svg>
         </div>
-        <span class="text-mdb-green">Ultra</span>
+        <span class="text-base font-bold text-white tracking-tight">TrailBlazer <span class="text-mdb-green">Ultra</span></span>
       </h1>
 
-      <!-- Spacer right (balances avatar) -->
-      <div class="w-9 h-9 flex-shrink-0"></div>
+      <!-- Avatar -->
+      <button
+        onclick={() => profileOpen = true}
+        aria-label="Profil"
+        class="w-8 h-8 rounded-full border border-white/15 flex items-center justify-center active:opacity-70 transition-opacity flex-shrink-0 bg-white/[0.08]"
+      >
+        {#if userName}
+          <UserRound size={15} color="white" strokeWidth={2} aria-hidden="true" />
+        {:else}
+          <UserRoundPlus size={15} color="white" strokeWidth={2} aria-hidden="true" />
+        {/if}
+      </button>
 
     </div>
-
-    <!-- Greeting -->
-    {#if userName}
-      <p class="text-center text-sm text-white/60 mt-2">
-        {greeting()}, <span class="text-white font-medium">{userName}</span>
-      </p>
-    {/if}
 
   </div>
 
