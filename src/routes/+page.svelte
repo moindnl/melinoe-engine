@@ -992,10 +992,7 @@
       </div>
       {#if surface !== 'gravel'}
         <div class="flex items-center justify-between mt-4 pt-3 border-t border-mdb-hairline">
-          <div>
-            <span class="text-sm text-mdb-slate">Radwege bevorzugen</span>
-            <p class="text-xs text-mdb-steel mt-0.5">Ausgewiesene Radwege statt schnellster Straße</p>
-          </div>
+          <span class="text-sm text-mdb-slate">Radwege nutzen</span>
           <button
             onclick={() => cyclewayPref[surface] = !cyclewayPref[surface]}
             class="relative w-10 h-6 rounded-full flex-shrink-0 ml-3 transition-colors {preferCycleway ? 'bg-mdb-green' : 'bg-mdb-hairline-strong'}"
