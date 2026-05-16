@@ -23,7 +23,7 @@ export async function fetchWeather(lat: number, lon: number, startTime: Date): P
   url.searchParams.set('hourly', 'temperature_2m,windspeed_10m,winddirection_10m,weathercode');
   url.searchParams.set('wind_speed_unit', 'kmh');
   url.searchParams.set('timezone', 'auto');
-  url.searchParams.set('forecast_days', '7');
+  url.searchParams.set('forecast_days', '5'); // DatePicker shows 7 days but days 6–7 rarely used and forecast accuracy drops
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Open-Meteo: ${res.status}`);
