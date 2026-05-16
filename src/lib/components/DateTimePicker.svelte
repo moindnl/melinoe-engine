@@ -140,7 +140,7 @@
       onclick={confirm}
       class="w-full py-3.5 rounded-full bg-mdb-green text-mdb-ink font-semibold text-sm"
     >
-      Übernehmen
+      Startzeit übernehmen
     </button>
 
   </div>
