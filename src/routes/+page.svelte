@@ -1389,7 +1389,7 @@
         <!-- Reset -->
         <button
           onclick={() => { allRoutes = []; routeIndex = 0; weather = null; tips = []; location = null; timePicked = false; sessionStorage.removeItem('tb_session'); }}
-          class="result-card w-full border border-mdb-hairline-strong text-mdb-steel rounded-full py-4 text-sm font-medium active:scale-[0.97] transition-transform"
+          class="result-card w-full border border-red-400/30 text-red-400 rounded-full py-4 text-sm font-medium active:scale-[0.97] transition-transform"
           style="animation-delay: 480ms"
         >
           Neu starten
