@@ -414,7 +414,6 @@
   let splashOpen = $state(browser && !localStorage.getItem(`tb_welcome_${VERSION}`));
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
-  let roadmapOpen = $state(false);
   let uberOpen = $state(false);
   let profileOpen = $state(false);
   let faqOpen = $state(false);
@@ -1418,8 +1417,6 @@
       </div>
       <!-- Links: sekundär -->
       <div class="flex items-center justify-center gap-3">
-        <button onclick={() => roadmapOpen = true} class="text-xs text-mdb-steel/60">Roadmap</button>
-        <span class="text-mdb-hairline-strong text-xs">|</span>
         <button onclick={() => impressumOpen = true} class="text-xs text-mdb-steel/60">Impressum</button>
       </div>
       <div class="flex justify-center mt-3">
@@ -1698,28 +1695,6 @@
   {/if}
 </BottomSheet>
 
-<BottomSheet bind:open={roadmapOpen} title="Roadmap">
-  <div class="space-y-2">
-    <p class="text-xs text-white/60 mb-3">Was als nächstes kommt — keine Versprechen, keine Deadlines.</p>
-    {#each [
-      { icon: Route,    label: 'Route-Farbe nach Untergrund', detail: 'Grün · Gelb · Orange auf der Karte' },
-      { icon: Bookmark, label: 'Route speichern',             detail: 'Letzte Touren wiederfinden' },
-      { icon: Globe,    label: 'Sprach-Switch DE/EN',         detail: 'Englische Oberfläche' },
-      { icon: WifiOff,  label: 'Offline-Modus',               detail: 'App startet ohne Netz' },
-    ] as item}
-      {@const Icon = item.icon}
-      <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-3">
-        <div class="w-9 h-9 rounded-xl bg-white/[0.08] flex items-center justify-center flex-shrink-0">
-          <Icon size={16} color="rgba(255,255,255,0.5)" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-white/85 font-medium">{item.label}</p>
-          <p class="text-xs text-white/60 mt-0.5">{item.detail}</p>
-        </div>
-      </div>
-    {/each}
-  </div>
-</BottomSheet>
 
 <BottomSheet bind:open={faqOpen} title="FAQ">
   <ul class="space-y-3 text-sm text-white/70">
