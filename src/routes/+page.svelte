@@ -1244,14 +1244,38 @@
         {/if}
 
         <!-- Wind -->
+        <!-- Wind + Weather (combined) -->
         <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 160ms">
           <div class="flex items-center justify-between mb-3">
-            <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Wind</div>
+            <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Wetter & Wind</div>
             <div class="text-xs text-mdb-steel tabular-nums">
               {new Date(startTime).toLocaleDateString('de', { weekday: 'short', day: 'numeric', month: 'short' })}
               · {new Date(startTime).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
+
+          <!-- Weather row -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-mdb-lg flex items-center justify-center" style="background:{conditionColor[weather.condition]}18">
+                {#if weather.condition === 'sunny'}<Sun size={20} color={conditionColor.sunny} />
+                {:else if weather.condition === 'cloudy'}<Cloud size={20} color={conditionColor.cloudy} />
+                {:else if weather.condition === 'rainy'}<CloudRain size={20} color={conditionColor.rainy} />
+                {:else}<Wind size={20} color={conditionColor.windy} />
+                {/if}
+              </div>
+              <div>
+                <div class="font-semibold text-mdb-ink">{conditionLabel[weather.condition]}</div>
+                <div class="text-xs text-mdb-steel">Gefühlt ca. {weather.temperature - 2} °C</div>
+              </div>
+            </div>
+            <div class="text-3xl font-semibold text-mdb-ink">{weather.temperature}°</div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-mdb-hairline mb-4"></div>
+
+          <!-- Wind row -->
           <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-full bg-mdb-surface border border-mdb-hairline flex items-center justify-center flex-shrink-0">
               <svg width="52" height="52" viewBox="0 0 52 52" aria-label="Windrichtungskompass" role="img">
@@ -1272,29 +1296,6 @@
                 <div class="h-full rounded-full transition-all duration-700" style="width:{route.windScore}%;background:{scoreColor}"></div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Weather -->
-        <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 240ms">
-          <div class="mb-3">
-            <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Wetter zur Startzeit</div>
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-mdb-lg flex items-center justify-center" style="background:{conditionColor[weather.condition]}18">
-                {#if weather.condition === 'sunny'}<Sun size={20} color={conditionColor.sunny} />
-                {:else if weather.condition === 'cloudy'}<Cloud size={20} color={conditionColor.cloudy} />
-                {:else if weather.condition === 'rainy'}<CloudRain size={20} color={conditionColor.rainy} />
-                {:else}<Wind size={20} color={conditionColor.windy} />
-                {/if}
-              </div>
-              <div>
-                <div class="font-semibold text-mdb-ink">{conditionLabel[weather.condition]}</div>
-                <div class="text-xs text-mdb-steel">Gefühlt ca. {weather.temperature - 2} °C</div>
-              </div>
-            </div>
-            <div class="text-3xl font-semibold text-mdb-ink">{weather.temperature}°</div>
           </div>
         </div>
 
