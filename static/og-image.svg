@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="60%">
+      <stop offset="0%" stop-color="#002535"/>
+      <stop offset="100%" stop-color="#001e2b"/>
+    </radialGradient>
+    <filter id="bloom" x="-30%" y="-60%" width="160%" height="220%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Zero line -->
+  <line x1="50" y1="260" x2="1150" y2="260"
+    stroke="#00ed64" stroke-width="1.5" stroke-opacity="0.25"/>
+
+  <!-- Sine wave — glow layer -->
+  <path d="M 50 260 C 141 193 234 130 325 130 C 416 130 509 193 600 260 C 691 328 784 390 875 390 C 966 390 1059 328 1150 260"
+    fill="none" stroke="#00ed64" stroke-width="10" stroke-linecap="round" stroke-opacity="0.18"
+    filter="url(#bloom)"/>
+
+  <!-- Sine wave — main -->
+  <path d="M 50 260 C 141 193 234 130 325 130 C 416 130 509 193 600 260 C 691 328 784 390 875 390 C 966 390 1059 328 1150 260"
+    fill="none" stroke="#00ed64" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Wordmark -->
+  <text x="100" y="496"
+    font-family="'Helvetica Neue', 'Arial', sans-serif"
+    font-size="80" font-weight="700" fill="white">souplesse <tspan fill="#00ed64">Ultra</tspan></text>
+
+  <!-- Tagline -->
+  <text x="102" y="556"
+    font-family="'Helvetica Neue', 'Arial', sans-serif"
+    font-size="26" font-weight="400" fill="#00ed64" fill-opacity="0.6"
+    letter-spacing="0.5">Wind-optimised road cycling route planner</text>
+</svg>
