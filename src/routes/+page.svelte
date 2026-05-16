@@ -1163,6 +1163,11 @@
           </button>
         </div>
 
+        <!-- Disclaimer -->
+        <p class="text-xs text-mdb-steel text-center px-2">
+          Route basiert auf offenen Kartendaten. Sperrungen und Zugangsbeschränkungen vor der Fahrt prüfen.
+        </p>
+
         <!-- Load more routes -->
         <button
           onclick={loadMoreRoutes}
@@ -1726,6 +1731,10 @@
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
       <p><strong class="text-white">Was bedeutet der Rückenwind-%?</strong> — Anteil der geschätzten Rückweg-Zeit mit günstigem Wind (±60°). 100 % = voller Rückenwind nach Hause.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
+      <p><strong class="text-white">Sind alle Wege befahrbar?</strong> — Routen basieren auf offenen Kartendaten (OpenStreetMap). Aktuelle Sperrungen, Baustellen oder Zugangsbeschränkungen können nicht garantiert ausgeschlossen werden — Strecke vor der Fahrt prüfen.</p>
     </li>
   </ul>
 </BottomSheet>
