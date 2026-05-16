@@ -408,7 +408,7 @@
   let slideDir = $state(1);
   let shared = $state(false);
   const route = $derived(allRoutes[routeIndex] ?? null);
-  let tips = $state<string[]>([]);
+  const tips = $derived(route && weather ? generateRouteTips(weather, route) : []);
 
   // --- UI state ---
   let timePicked = $state(false);
@@ -492,7 +492,6 @@
           startTime = s.startTime ?? startTime;
           timePicked = s.timePicked ?? false;
           if (s.cyclewayPref && typeof s.cyclewayPref === 'object') cyclewayPref = s.cyclewayPref;
-          tips = generateRouteTips(s.weather, s.allRoutes[s.routeIndex ?? 0]);
         }
       } catch { /* ignore corrupt session */ }
     }
@@ -582,13 +581,12 @@
 
   async function calculate() {
     if (!location) { locError = 'Bitte zuerst Standort ermitteln.'; return; }
-    loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
+    loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0, preferCycleway);
       const validRoutes = routes.filter(isValidRoute);
       weather = w; allRoutes = validRoutes; routeIndex = 0;
-      tips = generateRouteTips(w, validRoutes[0]);
       saveSession();
       await tick();
       requestAnimationFrame(() => {
@@ -680,7 +678,6 @@
     return () => clearInterval(t);
   });
 
-  $effect(() => { if (route && weather) tips = generateRouteTips(weather, route); });
   const arrowRot = $derived(weather ? (weather.windDirection + 180) % 360 : 0);
   const isNight = $derived((() => { const h = new Date().getHours(); return h >= 23 || h < 5; })());
 
@@ -1391,7 +1388,7 @@
 
         <!-- Reset -->
         <button
-          onclick={() => { allRoutes = []; routeIndex = 0; weather = null; tips = []; location = null; timePicked = false; sessionStorage.removeItem('tb_session'); }}
+          onclick={() => { allRoutes = []; routeIndex = 0; weather = null; location = null; timePicked = false; sessionStorage.removeItem('tb_session'); }}
           class="result-card w-full border border-red-400/30 text-red-400 rounded-full py-4 text-sm font-medium active:scale-[0.97] transition-transform"
           style="animation-delay: 480ms"
         >
