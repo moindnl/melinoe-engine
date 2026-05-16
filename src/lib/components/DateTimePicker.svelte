@@ -50,6 +50,8 @@
 
   const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const monthNames = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+
+  const isPast = $derived(selected < new Date());
 </script>
 
 <BottomSheet bind:open title="Startzeit">
@@ -134,6 +136,13 @@
       </div>
 
     </div>
+
+    <!-- Past warning -->
+    {#if isPast}
+      <p class="text-xs text-amber-400 text-center">
+        Gewählte Zeit liegt in der Vergangenheit — Wetterdaten können abweichen.
+      </p>
+    {/if}
 
     <!-- Confirm -->
     <button
