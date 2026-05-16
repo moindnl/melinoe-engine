@@ -943,13 +943,11 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex bg-mdb-surface rounded-full p-0.5 border border-mdb-hairline">
           {#each ([['distance', 'Distanz'], ['duration', 'Dauer']] as [PlanMode, string][]) as [mode, label]}
-            {#key planMode === mode}
-              <button
-                onclick={() => planMode = mode}
-                class="px-4 py-1.5 rounded-full text-xs font-semibold transition-colors pill-active
-                  {planMode === mode ? 'bg-mdb-green text-mdb-ink' : 'text-mdb-steel'}"
-              >{label}</button>
-            {/key}
+            <button
+              onclick={() => planMode = mode}
+              class="px-4 py-1.5 rounded-full text-xs font-semibold transition-colors pill-active
+                {planMode === mode ? 'bg-mdb-green text-mdb-ink' : 'text-mdb-steel'}"
+            >{label}</button>
           {/each}
         </div>
         <div class="text-right">
@@ -998,17 +996,15 @@
       <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Untergrund</div>
       <div class="grid grid-cols-3 gap-2">
         {#each (['road', 'mixed', 'gravel'] as SurfaceType[]) as s}
-          {#key surface === s}
-            <button
-              onclick={() => surface = s}
-              class="py-2.5 px-1 rounded-full text-sm font-semibold border transition-colors
-                {surface === s
-                  ? 'bg-mdb-green text-mdb-ink border-mdb-green pill-active'
-                  : 'bg-transparent text-mdb-slate border-mdb-hairline-strong'}"
-            >
-              {surfaceLabels[s]}
-            </button>
-          {/key}
+          <button
+            onclick={() => surface = s}
+            class="py-2.5 px-1 rounded-full text-sm font-semibold border transition-colors
+              {surface === s
+                ? 'bg-mdb-green text-mdb-ink border-mdb-green pill-active'
+                : 'bg-transparent text-mdb-slate border-mdb-hairline-strong'}"
+          >
+            {surfaceLabels[s]}
+          </button>
         {/each}
       </div>
       {#if surface !== 'gravel'}
@@ -1031,18 +1027,16 @@
       <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Steigung</div>
       <div class="grid grid-cols-4 gap-1.5">
         {#each (['flat', 'moderate', 'hilly', 'any'] as GradientLevel[]) as g}
-          {#key gradient === g}
-            <button
-              onclick={() => gradient = g}
-              class="py-2 px-1 rounded-full text-center border transition-colors
-                {gradient === g
-                  ? 'bg-mdb-green text-mdb-ink border-mdb-green pill-active'
-                  : 'bg-transparent text-mdb-slate border-mdb-hairline-strong'}"
-            >
-              <div class="text-xs font-semibold leading-tight">{gradientLabels[g]}</div>
-              <div class="text-xs leading-tight {gradient === g ? 'text-mdb-ink/70' : 'text-mdb-slate'}">{gradientSubLabels[g]}</div>
-            </button>
-          {/key}
+          <button
+            onclick={() => gradient = g}
+            class="py-2 px-1 rounded-full text-center border transition-colors
+              {gradient === g
+                ? 'bg-mdb-green text-mdb-ink border-mdb-green pill-active'
+                : 'bg-transparent text-mdb-slate border-mdb-hairline-strong'}"
+          >
+            <div class="text-xs font-semibold leading-tight">{gradientLabels[g]}</div>
+            <div class="text-xs leading-tight {gradient === g ? 'text-mdb-ink/70' : 'text-mdb-slate'}">{gradientSubLabels[g]}</div>
+          </button>
         {/each}
       </div>
     </div>

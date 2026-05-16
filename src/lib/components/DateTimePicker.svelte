@@ -5,8 +5,14 @@
 
   let selected = $state(new Date(value || Date.now()));
   let now = $state(new Date());
-  const nowInterval = setInterval(() => { now = new Date(); }, 30_000);
-  $effect(() => () => clearInterval(nowInterval));
+
+  // Interval only runs while sheet is open — no point ticking when hidden
+  $effect(() => {
+    if (!open) return;
+    now = new Date();
+    const id = setInterval(() => { now = new Date(); }, 30_000);
+    return () => clearInterval(id);
+  });
 
   $effect(() => {
     if (open) {
