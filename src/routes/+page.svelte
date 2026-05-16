@@ -1335,12 +1335,12 @@
               </div>
               <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5 {nutrition.gels === 0 ? 'opacity-30' : ''}">
                 <Zap size={14} class="text-mdb-green" />
-                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.gels}</p>
+                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.gels}×</p>
                 <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Gels</p>
               </div>
               <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5 {nutrition.bars === 0 ? 'opacity-30' : ''}">
                 <Cookie size={14} class="text-mdb-green" />
-                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.bars}</p>
+                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.bars}×</p>
                 <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Riegel</p>
               </div>
             </div>
