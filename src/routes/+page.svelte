@@ -1763,7 +1763,7 @@
       <p><strong class="text-white">Technologie</strong> — Routing via OpenRouteService, Wetter via Open-Meteo, Karte via MapLibre GL &amp; OpenStreetMap.</p>
     </li>
   </ul>
-  <div class="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/30">
+  <div class="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
     <span>v{VERSION} · {BUILD_NAME}</span>
     <span>souplesse Ultra</span>
   </div>
