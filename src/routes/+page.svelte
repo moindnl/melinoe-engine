@@ -6,7 +6,7 @@
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
-    MapPin, Search, BarChart2, Star, Globe, WifiOff, Bookmark
+    MapPin, Search, BarChart2, Star, Globe, WifiOff, Bookmark, Venus
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -19,31 +19,276 @@
   import DateTimePicker from '$lib/components/DateTimePicker.svelte';
 
   // --- Build ---
-  const VERSION = '1.8';
-  const BUILD_NAME = 'Eddy';
-  const RIDERS: Record<string, { fullName: string; nickname: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
-    'Eddy': {
-      fullName:    'Eddy Merckx',
-      nickname:    'Der Kannibale',
-      nationality: 'Belgien',
-      years:       '1965 – 1978',
-      specialty:   'Allrounder',
-      bio:         'Eddy Merckx gilt als der größte Radfahrer aller Zeiten. Er dominierte den Sport in einer Weise, die kein anderer Fahrer je wiederholt hat — 525 Karrieresiege, Siege auf allen Terrains, in allen Klassikern und allen Grand Tours.',
+  const VERSION = '1.9';
+  const BUILD_NAME = 'Marianne';
+  const RIDERS: Record<string, { fullName: string; nationality: string; years: string; specialty: string; bio: string; wins: string[] }> = {
+    'Marianne': {
+      fullName:    'Marianne Vos',
+      nationality: 'Niederlande',
+      years:       '2004 – heute',
+      specialty:   'Allrounderin',
+      bio:         'Marianne Vos ist die dominierende Figur des Frauenradsports — über zwei Jahrzehnte auf Weltklasse-Niveau, auf Straße, Bahn, Cyclocross und MTB. Kein anderes Profil im Peloton ist so breit, kein Palmares vergleichbar.',
       wins: [
-        '5× Tour de France (1969–72, 1974)',
-        '5× Giro d\'Italia (1968, 1970, 1972–74)',
-        '1× Vuelta a España (1973)',
-        '3× Lüttich–Bastogne–Lüttich',
-        '3× Mailand–San Remo',
-        '2× Paris–Roubaix',
-        '2× Flandern-Rundfahrt',
-        '2× Weltmeister (1971, 1974)',
-        'Stundenweltrekord (1972)',
+        '8× Weltmeisterin Straße & Bahn',
+        '3× Olympiasiegerin (2008, 2012, 2020)',
+        '3× Giro Donne',
+        '1× Tour de France Femmes (2022)',
+        'La Flèche Wallonne, Gent–Wevelgem, Strade Bianche',
+        'Über 200 Profi-Siege',
+      ],
+    },
+    'Demi': {
+      fullName:    'Demi Vollering',
+      nationality: 'Niederlande',
+      years:       '2018 – heute',
+      specialty:   'Klettern & Rundfahrten',
+      bio:         'Demi Vollering ist die Kletterin ihrer Generation. 2023 gewann sie die Tour de France Femmes souverän und zeigte dabei eine Dominanz am Berg, die an die besten Männer-Kletterer erinnert. Schnell, taktisch klug, konstant auf höchstem Niveau.',
+      wins: [
+        '1× Tour de France Femmes (2023)',
+        '1× Giro Donne (2024)',
+        '2× La Flèche Wallonne',
+        'Strade Bianche 2023',
+        'Liège–Bastogne–Liège 2023',
+      ],
+    },
+    'Lotte': {
+      fullName:    'Lotte Kopecky',
+      nationality: 'Belgien',
+      years:       '2015 – heute',
+      specialty:   'Klassiker & Sprint',
+      bio:         'Lotte Kopecky ist das Gesicht des belgischen Frauenradsports — technisch versiert auf Kopfsteinpflaster, stark im Sprint, mit dem Instinkt einer geborenen Klassikerin. 2024 gewann sie Ronde van Vlaanderen und Paris–Roubaix im gleichen Frühling.',
+      wins: [
+        '2× Ronde van Vlaanderen (2022, 2024)',
+        '1× Paris–Roubaix Femmes (2024)',
+        '2× Strade Bianche (2022, 2023)',
+        '1× Weltmeisterin Straße (2024)',
+        'Gent–Wevelgem 2022',
+      ],
+    },
+    'Kasia': {
+      fullName:    'Katarzyna Niewiadoma',
+      nationality: 'Polen',
+      years:       '2013 – heute',
+      specialty:   'Klettern',
+      bio:         'Katarzyna Niewiadoma ist Polens größte Radsport-Heldin. Jahrelang Podium-Anwärterin bei großen Rennen, gewann sie 2024 die Tour de France Femmes in einer dramatischen Schlussetappe — der erste polnische Sieg in einem Grand Tour der Frauen.',
+      wins: [
+        '1× Tour de France Femmes (2024)',
+        'La Flèche Wallonne 2017',
+        'Liège–Bastogne–Liège 2022',
+        'Múltiple Podien bei Grand Tours',
+      ],
+    },
+    'Longo': {
+      fullName:    'Elisa Longo Borghini',
+      nationality: 'Italien',
+      years:       '2012 – heute',
+      specialty:   'Klassiker & Klettern',
+      bio:         'Elisa Longo Borghini ist eine der konstantesten Fahrerinnen im Peloton — bereit für harte Klassiker genauso wie für Bergankünfte. 2024 gewann sie Paris–Roubaix und zeigte damit ihre Vielseitigkeit auf höchstem Niveau.',
+      wins: [
+        '1× Paris–Roubaix Femmes (2022)',
+        '2× Giro Donne (2023, 2024)',
+        'Tour of Flanders 2021',
+        'Liège–Bastogne–Liège 2020',
+        'Strade Bianche 2020',
+      ],
+    },
+    'Cecilie': {
+      fullName:    'Cecilie Uttrup Ludwig',
+      nationality: 'Dänemark',
+      years:       '2015 – heute',
+      specialty:   'Klettern & Attacken',
+      bio:         'Cecilie Uttrup Ludwig ist die Entertainerin des Pelotons — angreifend, leidenschaftlich, immer auf der Suche nach Ausreißern. Ihre offene Art und ihr unerschrockenes Fahren haben ihr eine riesige Fangemeinde eingebracht, die weit über den Radsport hinausgeht.',
+      wins: [
+        'La Flèche Wallonne 2022',
+        'Liège–Bastogne–Liège 2024',
+        'Múltiple Etappensiege Tour de France Femmes',
+        'Bergwertung Tour de France Femmes 2022',
+      ],
+    },
+    'Grace': {
+      fullName:    'Grace Brown',
+      nationality: 'Australien',
+      years:       '2017 – heute',
+      specialty:   'Zeitfahren & Klassiker',
+      bio:         'Grace Brown krönte 2024 ihre Karriere mit dem Olympiagold im Zeitfahren in Paris — vor heimischem Publikum ihres Teams, in einer Fahrt der Klasse. Dazu gewann sie in der gleichen Saison die Tour de France Femmes. Ein Jahr, das Geschichte schrieb.',
+      wins: [
+        '1× Olympiasiegerin Zeitfahren (Paris 2024)',
+        '1× Tour de France Femmes (2024)',
+        'Paris–Roubaix Femmes 2023',
+        'Mehrfache Zeitfahr-Spitzenleistungen',
+      ],
+    },
+    'Chloe': {
+      fullName:    'Chloé Dygert',
+      nationality: 'USA',
+      years:       '2017 – heute',
+      specialty:   'Zeitfahren',
+      bio:         'Chloé Dygert hält den Weltrekord im Einzelzeitfahren und ist auf dieser Distanz die schnellste Frau aller Zeiten. Nach einem schweren Sturz bei der WM 2020, bei dem sie fast ihre Karriere verlor, kämpfte sie sich zurück — und ist seitdem noch stärker.',
+      wins: [
+        '5× Weltmeisterin Zeitfahren (2018–2023)',
+        'Weltrekord Einzelzeitfahren',
+        '1× Olympiagold Teamverfolgung (Tokio 2020)',
+        'Comeback nach schwerem Sturz 2020',
+      ],
+    },
+    'Kristen': {
+      fullName:    'Kristen Faulkner',
+      nationality: 'USA',
+      years:       '2020 – heute',
+      specialty:   'Straße & Ausdauer',
+      bio:         'Kristen Faulkner begann erst spät mit dem Profi-Radsport — vorher war sie Harvard-Absolventin und Venture-Capital-Investorin. 2024 in Paris gewann sie Olympiagold im Straßenrennen und Teamverfolgung: zwei Goldmedaillen, eine Karriere wie im Film.',
+      wins: [
+        '2× Olympiagold Paris 2024 (Straße & Teamverfolgung)',
+        'US-Meisterin Straße 2024',
+        'Mehrere Etappensiege auf WorldTour-Niveau',
+      ],
+    },
+    'Pauline': {
+      fullName:    'Pauline Ferrand-Prévot',
+      nationality: 'Frankreich',
+      years:       '2012 – heute',
+      specialty:   'Straße, MTB & Cyclocross',
+      bio:         'Pauline Ferrand-Prévot ist die einzige Fahrerin, die gleichzeitig Weltmeisterin auf Straße, im Mountainbike und im Cyclocross war. 2024 gewann sie Olympiagold im MTB — ein Beweis, dass ihr Talent keine Grenzen kennt.',
+      wins: [
+        'Weltmeisterin Straße (2014)',
+        '3× Weltmeisterin MTB XC (2015, 2022, 2023)',
+        '2× Weltmeisterin Cyclocross (2015, 2016)',
+        'Weltmeisterin Gravel (2022)',
+        '1× Olympiasiegerin MTB (Paris 2024)',
+      ],
+    },
+    'Puck': {
+      fullName:    'Puck Pieterse',
+      nationality: 'Niederlande',
+      years:       '2021 – heute',
+      specialty:   'MTB & Straßenklassiker',
+      bio:         'Puck Pieterse ist das größte Talent im Frauenradsport der Gegenwart. Mit 22 Jahren bereits MTB-Weltmeisterin, Siegerin von Strade Bianche und Amstel Gold Race — auf Straße wie im Gelände auf Weltklasse-Niveau. Ihre Entwicklung ist noch längst nicht abgeschlossen.',
+      wins: [
+        '1× MTB XC Weltmeisterin (2023)',
+        'Strade Bianche 2024',
+        'Amstel Gold Race 2024',
+        'Olympia Bronze MTB (Paris 2024)',
+        'Múltiple Cyclocross-Podien auf Elite-Niveau',
+      ],
+    },
+    'Shirin': {
+      fullName:    'Shirin van Anrooij',
+      nationality: 'Niederlande',
+      years:       '2021 – heute',
+      specialty:   'CX & Straße',
+      bio:         'Shirin van Anrooij ist Cyclocross-Weltmeisterin und hat gleichzeitig auf der Straße ihr Potenzial als Klassikerin gezeigt. Sie steht für die neue Generation niederländischer Fahrerinnen, die ohne Grenzen zwischen Disziplinen denken.',
+      wins: [
+        '1× Cyclocross-Weltmeisterin (2023)',
+        'Mehrfache CX-Weltcup-Siege',
+        'Top-Ergebnisse bei Frühjahrsklassikern',
+      ],
+    },
+    'Elisa': {
+      fullName:    'Elisa Balsamo',
+      nationality: 'Italien',
+      years:       '2018 – heute',
+      specialty:   'Sprint & Klassiker',
+      bio:         'Elisa Balsamo wurde 2021 als 23-Jährige Weltmeisterin im Straßenrennen — ein Sprintsieg, der sie sofort in die Elite katapultierte. Seitdem zählt sie zu den stärksten Sprinterinnen im Peloton und gewinnt regelmäßig auf WorldTour-Niveau.',
+      wins: [
+        '1× Weltmeisterin Straße (2021)',
+        '1× Olympiagold Teamverfolgung (Tokio 2020)',
+        'Gent–Wevelgem 2022',
+        'Múltiple Etappensiege auf WorldTour-Niveau',
+      ],
+    },
+    'Ashleigh': {
+      fullName:    'Ashleigh Moolman',
+      nationality: 'Südafrika',
+      years:       '2010 – heute',
+      specialty:   'Klettern',
+      bio:         'Ashleigh Moolman ist die beste Radsportlerin, die Afrika je hervorgebracht hat. Jahrelang eine der konstantesten Kletterinnen im Peloton, kämpft sie für die Entwicklung des Frauenradsports auf dem afrikanischen Kontinent und darüber hinaus.',
+      wins: [
+        'Olympia Bronze Zeitfahren (Tokio 2020)',
+        'Múltiple Top-Ergebnisse bei Grand Tours',
+        'Afrikameisterin mehrfach',
+        'Langzeitige WorldTour-Präsenz auf Spitzenniveau',
+      ],
+    },
+    'Lizzie': {
+      fullName:    'Lizzie Deignan',
+      nationality: 'Großbritannien',
+      years:       '2008 – heute',
+      specialty:   'Klassiker',
+      bio:         'Lizzie Deignan gewann Paris–Roubaix Femmes 2021 in der allerersten Auflage des Rennens — solo, mit riesigem Vorsprung, im Regen. Dieses Bild steht für alles, wofür der Frauenradsport der letzten Jahre gekämpft hat.',
+      wins: [
+        '1× Weltmeisterin Straße (2015)',
+        'Paris–Roubaix Femmes 2021 (erste Ausgabe)',
+        'La Flèche Wallonne 2021',
+        'Strade Bianche 2016',
+        'Olympia Silber 2012',
+      ],
+    },
+    'Pfeiffer': {
+      fullName:    'Pfeiffer Georgi',
+      nationality: 'Großbritannien',
+      years:       '2020 – heute',
+      specialty:   'Klettern & Rundfahrten',
+      bio:         'Pfeiffer Georgi gehört zu den aufregendsten britischen Nachwuchstalenten im Frauenradsport. Stark am Berg, mit wachsender Reife in taktischen Situationen, entwickelt sie sich stetig zu einer ernsthaften Rundfahrerin auf WorldTour-Niveau.',
+      wins: [
+        'Etappensiege auf WorldTour-Niveau',
+        'Tour de Suisse Femmes 2023',
+        'Konstante Top-Ergebnisse bei Rundfahrten',
+      ],
+    },
+    'Niamh': {
+      fullName:    'Niamh Fisher-Black',
+      nationality: 'Neuseeland',
+      years:       '2020 – heute',
+      specialty:   'Klettern',
+      bio:         'Niamh Fisher-Black ist Neuseelands größte Radsport-Hoffnung — eine reine Kletterin mit dem Talent, eines Tages Grand Tours zu gewinnen. Bei SD Worx umgeben von den Besten der Welt wächst sie jede Saison deutlich.',
+      wins: [
+        'Neuseeland-Meisterin',
+        'Top-Ergebnisse bei Bergankünften WorldTour',
+        'Aufsteigerin der Saison 2022/2023',
+      ],
+    },
+    'Juliette': {
+      fullName:    'Juliette Labous',
+      nationality: 'Frankreich',
+      years:       '2018 – heute',
+      specialty:   'Klettern',
+      bio:         'Juliette Labous ist Frankreichs stärkste Kletterin der aktuellen Generation — präzise in der Bergankuft, gefürchtet in langen Aufstiegen. Sie zählt regelmäßig zu den besten Fahrerinnen bei Grand Tours und Hügelklassikern.',
+      wins: [
+        'Múltiple Top-5-Platzierungen Grand Tours',
+        'Etappensiege WorldTour',
+        'Französische Meisterin',
+      ],
+    },
+    'Marlen': {
+      fullName:    'Marlen Reusser',
+      nationality: 'Schweiz',
+      years:       '2019 – heute',
+      specialty:   'Zeitfahren',
+      bio:         'Marlen Reusser ist eine der explosivsten Zeitfahrerinnen im Peloton — wenn sie einen guten Tag hat, ist niemand schneller. Zweimal Olympia-Silber im Zeitfahren, mehrfache Weltmeisterschaftsmedaillen und eine Siegerin, die das Potenzial für Gold in sich trägt.',
+      wins: [
+        '2× Olympia Silber Zeitfahren (Tokio 2020, Paris 2024)',
+        '1× Weltmeisterin Zeitfahren (2022)',
+        'Paris–Roubaix Femmes 2022',
+        'Gent–Wevelgem 2022',
+      ],
+    },
+    'Clara': {
+      fullName:    'Clara Copponi',
+      nationality: 'Frankreich',
+      years:       '2019 – heute',
+      specialty:   'Sprint & Bahn',
+      bio:         'Clara Copponi ist Frankreichs schnellste Sprinterin und eine der stärksten Bahnfahrerinnen der Welt. Olympiasiegerin in der Mannschaftsverfolgung, zählt sie auf der Straße zu den gefährlichsten Finisherinnen im Peloton.',
+      wins: [
+        '1× Olympiasiegerin Teamverfolgung (Paris 2024)',
+        'Weltmeisterin Omnium (2022)',
+        'Múltiple Weltcup-Siege Bahn',
+        'Etappensiege WorldTour Straße',
       ],
     },
   };
 
   const CHANGELOG: string[] = [
+    'Watch The Femmes — jede Version trägt den Namen einer aktiven Profi-Fahrerin als Hommage an die Frauen des Radsports.',
     'Distanzabweichung sichtbar — kleines +/− Badge zeigt wie weit die Route vom Zielwert abweicht.',
     'FAQ im Footer — häufige Fragen zu Distanzabweichung, Routenfehler und Rückenwind-Score.',
     'Scroll-Verhalten verbessert — nach Berechnung springt die Ansicht direkt zur Karte statt zu den Stats.',
@@ -167,6 +412,7 @@
   let hasOrsKey = $state(!!getOrsApiKey());
   let anleitungOpen = $state(false);
   let impressumOpen = $state(false);
+  let splashOpen = $state(false);
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
   let roadmapOpen = $state(false);
@@ -205,6 +451,9 @@
   onMount(() => {
     console.log('%c"Ride as much or as little, as long or as short as you feel. But ride."\n— Eddy Merckx', 'color:#00ed64;font-style:italic;font-size:13px');
     console.log('%cFor Jannik and Lukas — my Ballerina-Ride-Buddies', 'color:#5c6c7a;font-size:11px');
+
+    if (!localStorage.getItem(`tb_welcome_${VERSION}`)) splashOpen = true;
+    if (splashOpen) document.body.style.overflow = 'hidden';
 
     const savedName = localStorage.getItem('tb_user_name');
     if (savedName) userName = savedName;
@@ -432,7 +681,7 @@
 
   $effect(() => { if (route && weather) tips = generateRouteTips(weather, route); });
   const arrowRot = $derived(weather ? (weather.windDirection + 180) % 360 : 0);
-  const isNight = $derived(new Date().getHours() >= 23 || new Date().getHours() < 5);
+  const isNight = $derived((() => { const h = new Date().getHours(); return h >= 23 || h < 5; })());
 
   const stars = [
     { top: '12%', left: '7%',  size: 2, dur: '2.1s', delay: '0s'    },
@@ -814,7 +1063,7 @@
           <ul class="space-y-1.5">
             {#each errorHints(calcError) as hint}
               <li class="flex items-start gap-2 text-xs text-mdb-slate leading-snug">
-                <span class="text-mdb-green font-bold flex-shrink-0 mt-0.5">·</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-mdb-green flex-shrink-0 mt-1.5"></span>
                 {hint}
               </li>
             {/each}
@@ -1028,7 +1277,7 @@
             <ul class="space-y-3">
               {#each tips as tip, i}
                 <li class="flex gap-3">
-                  <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">{i + 1}</span>
+                  <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">{i + 1}</span>
                   <p class="text-sm text-mdb-slate leading-snug">{tip}</p>
                 </li>
               {/each}
@@ -1184,6 +1433,55 @@
 
 </div>
 
+<!-- Watch The Femmes Splash -->
+{#if splashOpen}
+  {@const rider = RIDERS[BUILD_NAME]}
+  {@const topWins = rider.wins.slice(0, 3)}
+  <div
+    class="fixed inset-0 z-[100] flex flex-col items-center justify-between px-6 py-10 safe-top"
+    style="background: #001e2b; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: fadeSlideIn 0.4s ease-out both"
+  >
+    <div class="flex-1 flex flex-col items-center justify-center gap-6 text-center max-w-xs">
+
+      <Venus size={28} strokeWidth={1.5} class="text-mdb-green/30" />
+
+      <h1 class="text-3xl font-bold text-white tracking-tight">Watch The Femmes!</h1>
+      <p class="text-sm text-white/60 leading-relaxed -mt-4">
+        Jede Version dieser App trägt den Namen einer aktiven Profi-Fahrerin —
+        als Hommage an die Frauen des Radsports.
+      </p>
+
+      <div class="w-10 h-px bg-mdb-green/40"></div>
+
+      <div class="w-full space-y-3 text-left bg-white/[0.08] border border-white/10 rounded-2xl p-4">
+        <div>
+          <p class="text-[10px] font-semibold uppercase tracking-widest text-mdb-green/70 mb-1">v{VERSION} · Build</p>
+          <p class="text-2xl font-bold text-mdb-green">{rider.fullName}</p>
+          <p class="text-xs text-white/50 mt-0.5">{rider.nationality} · {rider.years} · {rider.specialty}</p>
+        </div>
+        <p class="text-sm text-white/75 leading-relaxed">{rider.bio}</p>
+        <ul class="space-y-1 pt-1">
+          {#each topWins as win}
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-mdb-green flex-shrink-0 mt-1.5"></span>
+              <span class="text-xs text-white/70">{win}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+
+    <div class="w-full max-w-xs pt-6 safe-bottom">
+      <button
+        onclick={() => { localStorage.setItem(`tb_welcome_${VERSION}`, '1'); splashOpen = false; document.body.style.overflow = ''; }}
+        class="w-full py-4 rounded-full bg-mdb-green text-mdb-ink font-bold text-base active:opacity-70 transition-opacity"
+      >
+        Los geht's
+      </button>
+    </div>
+  </div>
+{/if}
+
 <InstallPrompt />
 
 <!-- Profil & Einstellungen -->
@@ -1282,8 +1580,7 @@
     {@const r = RIDERS[BUILD_NAME]}
     <div class="space-y-5">
       <div>
-        <p class="text-mdb-green font-semibold text-base">„{r.nickname}"</p>
-        <p class="text-xs text-white/60 mt-0.5">{r.nationality} · {r.years} · {r.specialty}</p>
+        <p class="text-xs text-white/60">{r.nationality} · {r.years} · {r.specialty}</p>
       </div>
       <p class="text-sm text-white/85 leading-relaxed">{r.bio}</p>
       <div>
@@ -1291,7 +1588,7 @@
         <ul class="space-y-1.5">
           {#each r.wins as win}
             <li class="flex items-start gap-2.5">
-              <span class="text-mdb-green font-bold flex-shrink-0">·</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-mdb-green flex-shrink-0 mt-1.5"></span>
               <span class="text-sm text-white/85">{win}</span>
             </li>
           {/each}
@@ -1410,7 +1707,7 @@
     ] as item}
       {@const Icon = item.icon}
       <div class="flex items-center gap-3 bg-white/5 rounded-2xl px-4 py-3">
-        <div class="w-9 h-9 rounded-xl bg-white/8 flex items-center justify-center flex-shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-white/[0.08] flex items-center justify-center flex-shrink-0">
           <Icon size={16} color="rgba(255,255,255,0.5)" />
         </div>
         <div class="flex-1 min-w-0">
@@ -1425,15 +1722,15 @@
 <BottomSheet bind:open={faqOpen} title="FAQ">
   <ul class="space-y-3 text-sm text-white/70">
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">?</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
       <p><strong class="text-white">Warum weicht die Distanz ab?</strong> — Echte Straßen, keine Luftlinie. Schleifen können nicht exakt auf den Meter geplant werden — ±15 % sind normal.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">?</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
       <p><strong class="text-white">Warum wird keine Route gefunden?</strong> — Distanz erhöhen, Steigung auf „Beliebig" oder Untergrund auf „Gemischt" wechseln. Engere Filter schließen viele Wege aus.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">?</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
       <p><strong class="text-white">Was bedeutet der Rückenwind-%?</strong> — Anteil der geschätzten Rückweg-Zeit mit günstigem Wind (±60°). 100 % = voller Rückenwind nach Hause.</p>
     </li>
   </ul>
@@ -1442,27 +1739,27 @@
 <BottomSheet bind:open={anleitungOpen} title="Anleitung">
   <ul class="space-y-3 text-sm text-white/70">
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">1</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">1</span>
       <p><strong class="text-white">Profil & Einstellungen</strong> — Avatar-Icon oben links: Name hinterlegen, Standard-Untergrund, Steigung, Distanz und Durchschnittsgeschwindigkeit festlegen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">2</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">2</span>
       <p><strong class="text-white">Startpunkt & Startzeit</strong> — Standort per GPS ermitteln oder Adresse eingeben. Startzeit wählen — Wetter und Wind werden exakt für diesen Zeitpunkt abgerufen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">3</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">3</span>
       <p><strong class="text-white">Distanz & Dauer</strong> — Zielwerte per Schieberegler einstellen. Umschalten zwischen km-Ziel und Zeitbudget.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">4</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">4</span>
       <p><strong class="text-white">Untergrund & Steigung</strong> — Belag und maximale Bergigkeit wählen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">5</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">5</span>
       <p><strong class="text-white">Route berechnen</strong> — Wind-optimierte Schleife mit Wetter, Höhenprofil und Tipps. Zwischen Routen wechseln, weitere laden oder per Vergleichs-Icon alle Routen nach Rückenwind sortiert sehen.</p>
     </li>
     <li class="flex gap-3 items-start">
-      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold mt-0.5">6</span>
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">6</span>
       <p><strong class="text-white">Teilen & GPX</strong> — Route teilen oder als GPX-Datei exportieren — direkt in Garmin, Wahoo oder Komoot importierbar.</p>
     </li>
   </ul>
