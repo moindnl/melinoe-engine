@@ -1182,20 +1182,6 @@
           </button>
         </div>
 
-        <!-- Load more routes -->
-        <button
-          onclick={loadMoreRoutes}
-          disabled={loadingMore}
-          class="result-card w-full flex items-center justify-center gap-2 py-3 rounded-mdb-lg border border-mdb-hairline text-mdb-steel text-sm disabled:opacity-50 active:scale-[0.98] transition-transform"
-          style="animation-delay: 40ms"
-        >
-          {#if loadingMore}
-            <Loader size={14} class="animate-spin" />Weitere Routen werden berechnet…
-          {:else}
-            <Plus size={14} />Weitere Routen anzeigen
-          {/if}
-        </button>
-
         <!-- Sliding cards: stats, elevation, wind, weather, tips -->
         {#key routeIndex}
         <div class="space-y-3" in:fly={{ x: slideDir * 60, duration: 240, easing: cubicOut }}>
@@ -1361,6 +1347,20 @@
 
         </div>
         {/key}
+
+        <!-- Load more routes -->
+        <button
+          onclick={loadMoreRoutes}
+          disabled={loadingMore}
+          class="result-card w-full flex items-center justify-center gap-2 py-3 rounded-mdb-lg border border-mdb-hairline text-mdb-steel text-sm disabled:opacity-50 active:scale-[0.98] transition-transform"
+          style="animation-delay: 40ms"
+        >
+          {#if loadingMore}
+            <Loader size={14} class="animate-spin" />Weitere Routen werden berechnet…
+          {:else}
+            <Plus size={14} />Weitere Routen anzeigen
+          {/if}
+        </button>
 
         <!-- Disclaimer -->
         <p class="text-xs text-mdb-steel px-1">
