@@ -316,8 +316,8 @@
   let startTime = $state(nowString());
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
-  let preferCycleway = $state(false);
-  $effect(() => { if (surface === 'gravel') preferCycleway = false; });
+  let cyclewayPref = $state<Record<string, boolean>>({ road: false, mixed: false });
+  const preferCycleway = $derived(surface !== 'gravel' ? (cyclewayPref[surface] ?? false) : false);
 
   const targetDistanceKm = $derived(
     planMode === 'distance'
@@ -992,10 +992,13 @@
       </div>
       {#if surface !== 'gravel'}
         <div class="flex items-center justify-between mt-4 pt-3 border-t border-mdb-hairline">
-          <span class="text-sm text-mdb-slate">Radwege bevorzugen</span>
+          <div>
+            <span class="text-sm text-mdb-slate">Radwege bevorzugen</span>
+            <p class="text-xs text-mdb-steel mt-0.5">Ausgewiesene Radwege statt schnellster Straße</p>
+          </div>
           <button
-            onclick={() => preferCycleway = !preferCycleway}
-            class="relative w-10 h-6 rounded-full transition-colors {preferCycleway ? 'bg-mdb-green' : 'bg-mdb-hairline-strong'}"
+            onclick={() => cyclewayPref[surface] = !cyclewayPref[surface]}
+            class="relative w-10 h-6 rounded-full flex-shrink-0 ml-3 transition-colors {preferCycleway ? 'bg-mdb-green' : 'bg-mdb-hairline-strong'}"
             aria-pressed={preferCycleway}
             aria-label="Radwege bevorzugen"
           >
