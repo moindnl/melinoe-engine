@@ -3,6 +3,16 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+	build: {
+		rollupOptions: {
+			output: {
+				// Split MapLibre into its own chunk so it can be excluded from SW precache
+				manualChunks: (id) => {
+					if (id.includes('maplibre-gl')) return 'maplibre';
+				}
+			}
+		}
+	},
 	plugins: [
 		sveltekit(),
 		VitePWA({
@@ -30,6 +40,15 @@ export default defineConfig({
 						options: {
 							cacheName: 'map-tiles',
 							expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 7 }
+						}
+					},
+					{
+						// Cache MapLibre chunk after first load (lazy import in MapView)
+						urlPattern: /\/assets\/maplibre.*\.js$/,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'maplibre',
+							expiration: { maxAgeSeconds: 60 * 60 * 24 * 30 }
 						}
 					}
 				]
