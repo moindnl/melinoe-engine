@@ -1734,7 +1734,7 @@
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
-      <p><strong class="text-white">Sind alle Wege befahrbar?</strong> — Routen basieren auf offenen Kartendaten (OpenStreetMap). Aktuelle Sperrungen, Baustellen oder Zugangsbeschränkungen können nicht garantiert ausgeschlossen werden — Strecke vor der Fahrt prüfen.</p>
+      <p><strong class="text-white">Sind alle Wege befahrbar?</strong> — Routen basieren auf OpenStreetMap-Daten. Aktuelle Sperrungen können nicht ausgeschlossen werden — Strecke vor der Fahrt prüfen.</p>
     </li>
   </ul>
 </BottomSheet>
