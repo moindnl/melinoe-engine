@@ -270,26 +270,21 @@ async function generateWithOrs(
     .filter((r): r is PromiseFulfilledResult<OrsRouteData> => r.status === 'fulfilled')
     .map(r => r.value);
 
-  // Discard candidates with wildly wrong distance (mountain profiles can detour 3×)
+  // Convert to results first, then filter by distance — avoids duplicate coordinate traversal
   const minKm = targetDistanceKm * 0.4;
   const maxKm = targetDistanceKm * 1.6;
-  const validRoutes = rawRoutes.filter(r => {
-    let distM = 0;
-    for (let i = 1; i < r.coords.length; i++) {
-      const dlat = (r.coords[i].lat - r.coords[i - 1].lat) * 111000;
-      const dlon = (r.coords[i].lon - r.coords[i - 1].lon) * 111000 * Math.cos((r.coords[i].lat * Math.PI) / 180);
-      distM += Math.hypot(dlat, dlon);
-    }
-    return distM / 1000 >= minKm && distM / 1000 <= maxKm;
-  });
+  const allResults = rawRoutes.map(r => ({
+    result: orsDataToResult(r, scoreRouteByWind(r.coords, windDirection), speedKmh, surface, gradient),
+  }));
 
-  if (validRoutes.length === 0) throw new Error('Für diese Kombination aus Distanz, Untergrund und Steigung konnte keine Route berechnet werden. Bitte andere Einstellungen versuchen.');
+  // Discard candidates with wildly wrong distance (mountain profiles can detour 3×)
+  const validResults = allResults
+    .filter(({ result }) => result.distanceKm >= minKm && result.distanceKm <= maxKm)
+    .sort((a, b) => b.result.windScore - a.result.windScore);
 
-  const scored = validRoutes
-    .map(r => ({ data: r, score: scoreRouteByWind(r.coords, windDirection) }))
-    .sort((a, b) => b.score - a.score);
+  if (validResults.length === 0) throw new Error('Für diese Kombination aus Distanz, Untergrund und Steigung konnte keine Route berechnet werden. Bitte andere Einstellungen versuchen.');
 
-  return scored.map(s => orsDataToResult(s.data, s.score, speedKmh, surface, gradient));
+  return validResults.map(({ result }) => result);
 }
 
 function buildProfile(
