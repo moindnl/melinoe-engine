@@ -72,7 +72,7 @@
             {day.getDate()}
           </span>
           <span class="text-[10px] {sameDay(day, selected) ? 'text-mdb-ink/70' : 'text-white/60'}">
-            {monthNames[day.getMonth()]}
+            {sameDay(day, days[0]) ? 'Heute' : monthNames[day.getMonth()]}
           </span>
         </button>
       {/each}
