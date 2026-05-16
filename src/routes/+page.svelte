@@ -1408,32 +1408,19 @@
         <span class="text-base font-bold text-mdb-ink tracking-tight">souplesse <span class="text-mdb-green">Ultra</span></span>
         <span class="text-[11px] font-bold text-mdb-green/70 tracking-wide mt-0.5">Le vent tourne</span>
       </div>
-      <!-- Links + copyright -->
+      <!-- Links: primär -->
+      <div class="flex items-center justify-center gap-3 mb-2">
+        <button onclick={() => anleitungOpen = true} class="text-xs text-mdb-steel">Anleitung</button>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button onclick={() => faqOpen = true} class="text-xs text-mdb-steel">FAQ</button>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button onclick={() => uberOpen = true} class="text-xs text-mdb-steel">Über</button>
+      </div>
+      <!-- Links: sekundär -->
       <div class="flex items-center justify-center gap-3">
-        <button
-          onclick={() => anleitungOpen = true}
-          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
-        >Anleitung</button>
+        <button onclick={() => roadmapOpen = true} class="text-xs text-mdb-steel/60">Roadmap</button>
         <span class="text-mdb-hairline-strong text-xs">|</span>
-        <button
-          onclick={() => faqOpen = true}
-          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
-        >FAQ</button>
-        <span class="text-mdb-hairline-strong text-xs">|</span>
-        <button
-          onclick={() => impressumOpen = true}
-          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
-        >Impressum</button>
-        <span class="text-mdb-hairline-strong text-xs">|</span>
-        <button
-          onclick={() => roadmapOpen = true}
-          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
-        >Roadmap</button>
-        <span class="text-mdb-hairline-strong text-xs">|</span>
-        <button
-          onclick={() => uberOpen = true}
-          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
-        >Über</button>
+        <button onclick={() => impressumOpen = true} class="text-xs text-mdb-steel/60">Impressum</button>
       </div>
       <div class="flex justify-center mt-3">
         <button
