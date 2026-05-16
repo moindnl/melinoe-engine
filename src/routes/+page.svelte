@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
+  import { browser } from '$app/environment';
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import {
@@ -405,7 +406,7 @@
   let hasOrsKey = $state(!!getOrsApiKey());
   let anleitungOpen = $state(false);
   let impressumOpen = $state(false);
-  let splashOpen = $state(false);
+  let splashOpen = $state(browser && !localStorage.getItem(`tb_welcome_${VERSION}`));
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
   let roadmapOpen = $state(false);
@@ -436,9 +437,6 @@
   onMount(() => {
     console.log('%c"Ride as much or as little, as long or as short as you feel. But ride."\n— Eddy Merckx', 'color:#00ed64;font-style:italic;font-size:13px');
     console.log('%cFor Jannik and Lukas — my Ballerina-Ride-Buddies', 'color:#5c6c7a;font-size:11px');
-
-    if (!localStorage.getItem(`tb_welcome_${VERSION}`)) splashOpen = true;
-    if (splashOpen) document.body.style.overflow = 'hidden';
 
     const savedName = localStorage.getItem('tb_user_name');
     if (savedName) userName = savedName;
@@ -515,6 +513,10 @@
     startTime = nowString();
     const t = setInterval(() => { startTime = nowString(); }, 60_000);
     return () => clearInterval(t);
+  });
+
+  $effect(() => {
+    if (browser) document.body.style.overflow = splashOpen ? 'hidden' : '';
   });
 
   $effect(() => {
@@ -1443,7 +1445,7 @@
 
     <div class="w-full max-w-xs pt-6 safe-bottom">
       <button
-        onclick={() => { localStorage.setItem(`tb_welcome_${VERSION}`, '1'); splashOpen = false; document.body.style.overflow = ''; }}
+        onclick={() => { localStorage.setItem(`tb_welcome_${VERSION}`, '1'); splashOpen = false; }}
         class="w-full py-4 rounded-full bg-mdb-green text-mdb-ink font-bold text-base active:opacity-70 transition-opacity"
       >
         Los geht's
