@@ -4,6 +4,9 @@
   let { value = $bindable(''), open = $bindable(false), onconfirm = () => {} }: { value: string; open: boolean; onconfirm?: () => void } = $props();
 
   let selected = $state(new Date(value || Date.now()));
+  let now = $state(new Date());
+  const nowInterval = setInterval(() => { now = new Date(); }, 30_000);
+  $effect(() => () => clearInterval(nowInterval));
 
   $effect(() => {
     if (open) {
@@ -51,7 +54,7 @@
   const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const monthNames = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 
-  const isPast = $derived(selected < new Date());
+  const isPast = $derived(selected < now);
 </script>
 
 <BottomSheet bind:open title="Startzeit">

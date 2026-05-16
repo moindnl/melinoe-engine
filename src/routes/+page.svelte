@@ -7,7 +7,7 @@
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
-    MapPin, Search, BarChart2, Star, Globe, WifiOff, Bookmark, Venus, Zap, Flame, Cookie, LocateFixed
+    MapPin, Search, BarChart2, Star, Venus, Zap, Flame, Cookie, LocateFixed
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -1242,7 +1242,6 @@
           />
         {/if}
 
-        <!-- Wind -->
         <!-- Wind + Weather (combined) -->
         <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 160ms">
           <div class="flex items-center justify-between mb-3">
