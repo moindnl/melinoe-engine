@@ -1361,7 +1361,7 @@
         {/key}
 
         <!-- Disclaimer -->
-        <p class="text-xs text-mdb-steel px-1">
+        <p class="text-xs text-mdb-steel px-1 mb-2">
           Route auf Basis offener Kartendaten — Sperrungen bitte vor der Fahrt prüfen.
         </p>
 
