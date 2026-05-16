@@ -241,6 +241,7 @@ async function generateWithOrs(
   surface: SurfaceType,
   gradient: GradientLevel,
   bearingOffset = 0,
+  forcedStartBearing?: number,
 ): Promise<RouteResult[]> {
   if (!Number.isFinite(origin.lat) || !Number.isFinite(origin.lon)) {
     throw new Error(`Ungültige Koordinate: lon=${origin.lon}, lat=${origin.lat}`);
@@ -252,10 +253,17 @@ async function generateWithOrs(
   const profile = orsProfile[surface];
   const side = (targetDistanceKm / 3) * 0.70;
 
-  const candidateWaypoints: RoutePoint[][] = [45, 135, 225, 315].map(theta => {
-    const t = theta + bearingOffset;
+  // When a start direction is forced, use only the triangle arm pointing that way.
+  // bearingOffset is set so theta=45 aligns with the forced bearing.
+  const baseAngles = forcedStartBearing !== undefined ? [45] : [45, 135, 225, 315];
+  const offset = forcedStartBearing !== undefined
+    ? (forcedStartBearing - 45 + 360) % 360
+    : bearingOffset;
+
+  const candidateWaypoints: RoutePoint[][] = baseAngles.map(theta => {
+    const t = (theta + offset) % 360;
     const wp1 = computeWaypoint(origin, t, side);
-    const wp2 = computeWaypoint(origin, t + 60, side);
+    const wp2 = computeWaypoint(origin, (t + 60) % 360, side);
     return [origin, wp1, wp2, origin];
   });
 
@@ -322,10 +330,11 @@ export async function generateOptimalLoop(
   surface: SurfaceType = 'road',
   gradient: GradientLevel = 'any',
   bearingOffset = 0,
+  forcedStartBearing?: number,
 ): Promise<RouteResult[]> {
   const apiKey = getOrsApiKey();
   if (!apiKey) {
     throw new Error('Kein ORS-API-Key hinterlegt. Bitte in den Einstellungen eintragen.');
   }
-  return generateWithOrs(apiKey, origin, targetDistanceKm, speedKmh, windDirection, surface, gradient, bearingOffset);
+  return generateWithOrs(apiKey, origin, targetDistanceKm, speedKmh, windDirection, surface, gradient, bearingOffset, forcedStartBearing);
 }

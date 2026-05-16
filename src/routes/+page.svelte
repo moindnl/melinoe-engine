@@ -315,6 +315,18 @@
   let startTime = $state(nowString());
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
+  let startDir = $state<number | null>(null);
+  let dirConflict = $state(false);
+
+  const COMPASS_DIRS: ({ label: string; deg: number } | null)[] = [
+    { label: 'NW', deg: 315 }, { label: 'N',  deg: 0   }, { label: 'NO', deg: 45  },
+    { label: 'W',  deg: 270 }, null,                        { label: 'O',  deg: 90  },
+    { label: 'SW', deg: 225 }, { label: 'S',  deg: 180  }, { label: 'SO', deg: 135 },
+  ];
+
+  function angleDiff(a: number, b: number): number {
+    return Math.abs(((a - b + 540) % 360) - 180);
+  }
 
   const targetDistanceKm = $derived(
     planMode === 'distance'
@@ -573,7 +585,8 @@
     loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
-      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0);
+      dirConflict = startDir !== null && angleDiff(startDir, w.windDirection) > 90;
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0, startDir ?? undefined);
       const validRoutes = routes.filter(isValidRoute);
       weather = w; allRoutes = validRoutes; routeIndex = 0;
       tips = generateRouteTips(w, validRoutes[0]);
@@ -594,8 +607,8 @@
     if (!location || !weather) return;
     loadingMore = true; calcError = '';
     try {
-      const offset = (bearingOffset + 22.5) % 360;
-      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset);
+      const offset = startDir !== null ? 0 : (bearingOffset + 22.5) % 360;
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset, startDir ?? undefined);
       bearingOffset = offset;
       allRoutes = [...allRoutes, ...routes.filter(isValidRoute)];
     } catch (e) {
@@ -1007,6 +1020,41 @@
           {/key}
         {/each}
       </div>
+    </div>
+
+    <!-- ── Startrichtung ── -->
+    <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Startrichtung</div>
+        {#if startDir !== null}
+          <button onclick={() => { startDir = null; dirConflict = false; }} class="text-xs text-mdb-steel underline underline-offset-2">Auswahl aufheben</button>
+        {:else}
+          <span class="text-[10px] font-medium text-mdb-muted uppercase tracking-wider">Optional</span>
+        {/if}
+      </div>
+      <div class="grid grid-cols-3 gap-1.5 w-fit mx-auto">
+        {#each COMPASS_DIRS as cell}
+          {#if cell === null}
+            <div class="w-11 h-11 flex items-center justify-center">
+              <div class="w-1.5 h-1.5 rounded-full bg-mdb-hairline-strong"></div>
+            </div>
+          {:else}
+            <button
+              onclick={() => startDir = startDir === cell.deg ? null : cell.deg}
+              class="w-11 h-11 rounded-mdb-md border text-xs font-semibold transition-colors
+                {startDir === cell.deg
+                  ? 'bg-mdb-green text-mdb-ink border-mdb-green pill-active'
+                  : 'text-mdb-slate border-mdb-hairline-strong active:bg-mdb-surface'}"
+            >{cell.label}</button>
+          {/if}
+        {/each}
+      </div>
+      {#if dirConflict}
+        <div class="mt-3 flex items-start gap-2 text-amber-600 bg-amber-50 rounded-mdb-md p-2.5">
+          <Info size={14} class="flex-shrink-0 mt-0.5" />
+          <p class="text-xs leading-snug">Diese Richtung kann den Rückenwind-Anteil reduzieren — der Wind weht gerade aus einer anderen Richtung.</p>
+        </div>
+      {/if}
     </div>
 
     <!-- ── ORS API Key ── -->
