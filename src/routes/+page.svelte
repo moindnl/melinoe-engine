@@ -983,7 +983,7 @@
       {/if}
       {#if usingDefaultSpeed}
         <p class="text-xs text-mdb-steel mt-3">
-          Geschätzte Werte basieren auf {userSpeeds[surface]} km/h (Standard) ·
+          Geschätzte Werte basieren auf {userSpeeds[surface]} km/h (Standard)<br/>
           <button onclick={() => profileOpen = true} class="underline text-mdb-steel active:text-mdb-ink">Profil anpassen</button>
         </p>
       {/if}
