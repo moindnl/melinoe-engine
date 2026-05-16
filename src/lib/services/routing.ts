@@ -30,7 +30,7 @@ export const gradientSubLabels: Record<GradientLevel, string> = {
   flat:     '< 4 %',
   moderate: '< 8 %',
   hilly:    '< 12 %',
-  any:      'kein Limit',
+  any:      '∞',
 };
 
 // ORS steepness_difficulty: 3=avoid steep, 0=no preference
