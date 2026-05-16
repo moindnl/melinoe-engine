@@ -4,15 +4,6 @@ import type { RouteResult } from './routing';
 export function generateRouteTips(weather: WeatherData, route: RouteResult): string[] {
   const tips: string[] = [];
 
-  // Wind tip
-  if (route.windScore >= 65) {
-    tips.push(`Optimale Windnutzung: ${route.windScore}% Rückenwind auf der Rückfahrt. Starte zügig gegen den Wind.`);
-  } else if (route.windScore >= 40) {
-    tips.push(`Mäßiger Rückenwind (${route.windScore}%) auf der Rückfahrt. Halte ein gleichmäßiges Tempo.`);
-  } else {
-    tips.push('Windbedingungen wenig optimal heute. Wähle eine windgeschützte Route entlang von Wäldern.');
-  }
-
   // Temperature tip
   if (weather.temperature < 10) {
     tips.push('Unter 10 °C: Thermo-Trikot, Finger- und Zehenwärmer empfohlen. Aufwärmen dauert länger.');
