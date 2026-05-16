@@ -43,7 +43,7 @@ input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   height: 4px;
-  background: #e1e5e8;
+  background: linear-gradient(to right, #00ed64 var(--pct, 0%), #e1e5e8 var(--pct, 0%));
   border-radius: 9999px;
   outline: none;
 }

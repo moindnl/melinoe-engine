@@ -969,13 +969,15 @@
       </div>
 
       {#if planMode === 'distance'}
-        <input type="range" min="20" max="200" step="5" bind:value={distanceKm} class="w-full" aria-label="Distanz in Kilometern" />
+        <input type="range" min="20" max="200" step="5" bind:value={distanceKm} class="w-full" aria-label="Distanz in Kilometern"
+          style="--pct: {((distanceKm - 20) / 180 * 100).toFixed(1)}%" />
         <div class="flex justify-between text-xs text-mdb-steel mt-1">
           <span>20 km</span>
           <span>200 km</span>
         </div>
       {:else}
-        <input type="range" min="30" max="360" step="15" bind:value={durationMin} class="w-full" aria-label="Dauer in Minuten" />
+        <input type="range" min="30" max="360" step="10" bind:value={durationMin} class="w-full" aria-label="Dauer in Minuten"
+          style="--pct: {((durationMin - 30) / 330 * 100).toFixed(1)}%" />
         <div class="flex justify-between text-xs text-mdb-steel mt-1">
           <span>30 min</span>
           <span>6 h</span>
