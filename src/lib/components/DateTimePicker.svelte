@@ -140,7 +140,7 @@
     <!-- Past warning -->
     {#if isPast}
       <p class="text-xs text-amber-400 text-center">
-        Gewählte Zeit liegt in der Vergangenheit — Wetterdaten können abweichen.
+        Gewählte Zeit liegt in der Vergangenheit.
       </p>
     {/if}
 
