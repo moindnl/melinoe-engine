@@ -1417,6 +1417,8 @@
       </div>
       <!-- Links: sekundär -->
       <div class="flex items-center justify-center gap-3">
+        <span class="text-xs text-mdb-steel/60">© 2025</span>
+        <span class="text-mdb-hairline-strong text-xs">·</span>
         <button onclick={() => impressumOpen = true} class="text-xs text-mdb-steel/60">Impressum</button>
       </div>
       <div class="flex justify-center mt-3">
