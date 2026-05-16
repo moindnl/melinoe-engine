@@ -288,7 +288,7 @@
   };
 
   const CHANGELOG: string[] = [
-    'Watch The Femmes — jede Version trägt den Namen einer aktiven Profi-Fahrerin als Hommage an die Frauen des Radsports.',
+    'Watch The Femmes — jedes Major Release trägt den Namen einer aktiven Profi-Fahrerin als Hommage an die Frauen des Radsports.',
     'Distanzabweichung sichtbar — kleines +/− Badge zeigt wie weit die Route vom Zielwert abweicht.',
     'FAQ im Footer — häufige Fragen zu Distanzabweichung, Routenfehler und Rückenwind-Score.',
     'Scroll-Verhalten verbessert — nach Berechnung springt die Ansicht direkt zur Karte statt zu den Stats.',
@@ -1436,35 +1436,32 @@
 <!-- Watch The Femmes Splash -->
 {#if splashOpen}
   {@const rider = RIDERS[BUILD_NAME]}
-  {@const topWins = rider.wins.slice(0, 3)}
   <div
     class="fixed inset-0 z-[100] flex flex-col items-center justify-between px-6 py-10 safe-top"
-    style="background: #001e2b; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: fadeSlideIn 0.4s ease-out both"
+    style="background: #001e2b; animation: fadeSlideIn 0.4s ease-out both"
   >
-    <div class="flex-1 flex flex-col items-center justify-center gap-6 text-center max-w-xs">
+    <div class="flex-1 flex flex-col items-center justify-center gap-6 text-center max-w-xs w-full">
 
       <Venus size={28} strokeWidth={1.5} class="text-mdb-green/30" />
 
-      <h1 class="text-3xl font-bold text-white tracking-tight">Watch The Femmes!</h1>
+      <h1 class="text-3xl font-bold text-white tracking-tight">Watch The Femmes</h1>
       <p class="text-sm text-white/60 leading-relaxed -mt-4">
-        Jede Version dieser App trägt den Namen einer aktiven Profi-Fahrerin —
+        Jedes Major Release dieser App trägt den Namen einer aktiven Profi-Fahrerin —
         als Hommage an die Frauen des Radsports.
       </p>
 
       <div class="w-10 h-px bg-mdb-green/40"></div>
 
-      <div class="w-full space-y-3 text-left bg-white/[0.08] border border-white/10 rounded-2xl p-4">
+      <div class="w-full space-y-4 text-left bg-white/[0.08] border border-white/10 rounded-2xl p-4">
         <div>
-          <p class="text-[10px] font-semibold uppercase tracking-widest text-mdb-green/70 mb-1">v{VERSION} · Build</p>
-          <p class="text-2xl font-bold text-mdb-green">{rider.fullName}</p>
-          <p class="text-xs text-white/50 mt-0.5">{rider.nationality} · {rider.years} · {rider.specialty}</p>
+          <p class="text-[10px] font-semibold uppercase tracking-widest text-mdb-green/70 mb-1">v{VERSION} · {rider.fullName}</p>
+          <p class="text-xs font-semibold text-white/40 uppercase tracking-wider">Was ist neu</p>
         </div>
-        <p class="text-sm text-white/75 leading-relaxed">{rider.bio}</p>
-        <ul class="space-y-1 pt-1">
-          {#each topWins as win}
-            <li class="flex items-start gap-2">
+        <ul class="space-y-2">
+          {#each CHANGELOG.slice(0, 3) as item}
+            <li class="flex items-start gap-2.5">
               <span class="w-1.5 h-1.5 rounded-full bg-mdb-green flex-shrink-0 mt-1.5"></span>
-              <span class="text-xs text-white/70">{win}</span>
+              <span class="text-xs text-white/75 leading-snug">{item}</span>
             </li>
           {/each}
         </ul>
