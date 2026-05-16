@@ -433,7 +433,7 @@
     try {
       sessionStorage.setItem('tb_session', JSON.stringify({
         allRoutes, weather, location, routeIndex,
-        surface, gradient, distanceKm, durationMin, planMode, startTime, timePicked,
+        surface, gradient, distanceKm, durationMin, planMode, startTime, timePicked, cyclewayPref,
       }));
     } catch { /* ignore quota errors */ }
   }
@@ -484,6 +484,7 @@
           planMode = s.planMode ?? planMode;
           startTime = s.startTime ?? startTime;
           timePicked = s.timePicked ?? false;
+          if (s.cyclewayPref && typeof s.cyclewayPref === 'object') cyclewayPref = s.cyclewayPref;
           tips = generateRouteTips(s.weather, s.allRoutes[s.routeIndex ?? 0]);
         }
       } catch { /* ignore corrupt session */ }
@@ -997,7 +998,7 @@
             onclick={() => cyclewayPref[surface] = !cyclewayPref[surface]}
             class="relative w-10 h-6 rounded-full flex-shrink-0 ml-3 transition-colors {preferCycleway ? 'bg-mdb-green' : 'bg-mdb-hairline-strong'}"
             aria-pressed={preferCycleway}
-            aria-label="Radwege bevorzugen"
+            aria-label="Radwege nutzen"
           >
             <span class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform {preferCycleway ? 'translate-x-4' : 'translate-x-0'}"></span>
           </button>
