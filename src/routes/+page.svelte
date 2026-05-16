@@ -1277,12 +1277,8 @@
 
         <!-- Weather -->
         <div class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4" style="animation-delay: 240ms">
-          <div class="flex items-center justify-between mb-3">
+          <div class="mb-3">
             <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Wetter zur Startzeit</div>
-            <div class="text-xs text-mdb-steel tabular-nums">
-              {new Date(startTime).toLocaleDateString('de', { weekday: 'short', day: 'numeric', month: 'short' })}
-              · {new Date(startTime).toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit' })}
-            </div>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
