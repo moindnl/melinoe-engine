@@ -1349,7 +1349,7 @@
               <Flame size={14} class="text-mdb-green flex-shrink-0" />
               <div>
                 <p class="text-sm font-semibold text-mdb-ink">ca. {nutrition.kcalLow.toLocaleString('de')} – {nutrition.kcalHigh.toLocaleString('de')} kcal</p>
-                <p class="text-[10px] text-mdb-steel mt-0.5">Richtwerte · abhängig von Gewicht & Intensität</p>
+                <p class="text-[10px] text-mdb-steel mt-0.5">Richtwerte — individuell verschieden</p>
               </div>
             </div>
         </div>
