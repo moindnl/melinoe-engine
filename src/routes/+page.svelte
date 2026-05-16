@@ -1391,7 +1391,7 @@
           class="result-card w-full border border-mdb-hairline-strong text-mdb-steel rounded-full py-4 text-sm font-medium active:scale-[0.97] transition-transform"
           style="animation-delay: 480ms"
         >
-          Neue Route planen
+          Neu starten
         </button>
 
         <div class="safe-bottom"></div>
