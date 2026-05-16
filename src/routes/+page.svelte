@@ -516,7 +516,9 @@
   });
 
   $effect(() => {
-    if (browser) document.body.style.overflow = splashOpen ? 'hidden' : '';
+    if (!browser) return;
+    document.body.style.overflow = splashOpen ? 'hidden' : '';
+    if (!splashOpen) document.getElementById('__splash_cover')?.remove();
   });
 
   $effect(() => {

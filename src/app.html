@@ -13,6 +13,16 @@
 		<link rel="manifest" href="/manifest.json" />
 		%sveltekit.head%
 	</head>
+	<script>
+		try {
+			if (!localStorage.getItem('tb_welcome_1.9')) {
+				var c = document.createElement('div');
+				c.id = '__splash_cover';
+				c.style.cssText = 'position:fixed;inset:0;z-index:99;background:#001e2b';
+				document.documentElement.appendChild(c);
+			}
+		} catch(e) {}
+	</script>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
