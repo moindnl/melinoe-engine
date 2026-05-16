@@ -854,9 +854,7 @@
             {:else if location && locationLabel}
               <p class="text-xs text-mdb-green-dark truncate">{locationLabel}</p>
             {:else if location}
-              <p class="text-xs text-mdb-green-dark tabular-nums truncate">
-                {location.lat.toFixed(4)}° · {location.lon.toFixed(4)}°
-              </p>
+              <p class="text-xs text-mdb-green-dark truncate">Aktueller Standort</p>
             {:else if locError}
               <p class="text-xs text-red-500">{locError}</p>
             {/if}
@@ -923,9 +921,10 @@
             <li class="border-t border-mdb-hairline first:border-t-0">
               <button
                 onclick={() => selectSearchResult(r)}
-                class="w-full text-left px-4 py-3 text-xs text-mdb-ink active:bg-mdb-surface transition-colors truncate"
+                class="w-full text-left px-4 py-3 active:bg-mdb-surface transition-colors"
               >
-                {r.display_name}
+                <p class="text-xs font-semibold text-mdb-ink truncate">{formatNominatimLabel(r)}</p>
+                <p class="text-xs text-mdb-steel truncate mt-0.5">{r.display_name.split(',').slice(1).join(',').trim()}</p>
               </button>
             </li>
           {/each}
