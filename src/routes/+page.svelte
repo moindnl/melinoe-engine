@@ -1222,7 +1222,7 @@
             <div class="flex flex-col items-center gap-1 border-r border-t border-mdb-hairline pt-4">
               <MoveUp size={15} color="#5c6c7a" />
               <span class="text-xl font-semibold text-mdb-ink">{route.elevationGain}</span>
-              <span class="text-xs text-mdb-steel">m Hm</span>
+              <span class="text-xs text-mdb-steel">Hm</span>
             </div>
             <div class="flex flex-col items-center gap-1 border-t border-mdb-hairline pt-4">
               <!-- Rotating compass arrow -->
