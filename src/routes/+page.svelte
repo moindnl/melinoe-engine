@@ -347,6 +347,7 @@
   let searchResults = $state<NominatimResult[]>([]);
   let searchLoading = $state(false);
   let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+  let searchAbort: AbortController | null = null;
 
   function formatNominatimLabel(r: NominatimResult): string {
     const a = r.address;
@@ -366,6 +367,8 @@
     const q = searchQuery.trim();
     if (q.length < 3) { searchResults = []; return; }
     searchDebounce = setTimeout(async () => {
+      searchAbort?.abort();
+      searchAbort = new AbortController();
       searchLoading = true;
       try {
         const url = new URL('https://nominatim.openstreetmap.org/search');
@@ -375,11 +378,14 @@
         url.searchParams.set('addressdetails', '1');
         url.searchParams.set('accept-language', 'de');
         const res = await fetch(url.toString(), {
-          headers: { 'User-Agent': 'SouplesseUltra/1.9' }
+          headers: { 'User-Agent': 'SouplesseUltra/1.9' },
+          signal: searchAbort.signal
         });
         searchResults = await res.json();
-      } catch { searchResults = []; }
-      finally { searchLoading = false; }
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        searchResults = [];
+      } finally { searchLoading = false; }
     }, 300);
   }
 
