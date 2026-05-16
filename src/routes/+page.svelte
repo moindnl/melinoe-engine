@@ -410,6 +410,7 @@
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
   let roadmapOpen = $state(false);
+  let uberOpen = $state(false);
   let profileOpen = $state(false);
   let faqOpen = $state(false);
   let compareOpen = $state(false);
@@ -1391,6 +1392,11 @@
           onclick={() => roadmapOpen = true}
           class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
         >Roadmap</button>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button
+          onclick={() => uberOpen = true}
+          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
+        >Über</button>
       </div>
       <div class="flex justify-center mt-3">
         <button
@@ -1735,4 +1741,40 @@
       <p><strong class="text-white">Teilen & GPX</strong> — Route teilen oder als GPX-Datei exportieren — direkt in Garmin, Wahoo oder Komoot importierbar.</p>
     </li>
   </ul>
+</BottomSheet>
+
+<BottomSheet bind:open={uberOpen} title="Über souplesse Ultra">
+  <div class="space-y-6 text-sm text-white/70">
+
+    <div class="space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-widest text-mdb-green/70">souplesse</p>
+      <p>Französischer Radsport-Begriff für die Leichtigkeit und Flüssigkeit der Bewegung — wenn Kraft und Technik so verschmelzen, dass Fahren mühelos wirkt.</p>
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-widest text-mdb-green/70">Le vent tourne</p>
+      <p>„Der Wind dreht sich." — Steht für das Versprechen der App: Der Wind arbeitet für dich, nicht gegen dich.</p>
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-widest text-mdb-green/70">Die App</p>
+      <p>souplesse Ultra plant wind-optimierte Rennrad-Rundtouren. Vier Routen-Kandidaten werden anhand der aktuellen Windvorhersage bewertet — so dass der Rückenwind auf dem Heimweg wartet.</p>
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-widest text-mdb-green/70">Technologie</p>
+      <ul class="space-y-1">
+        <li><span class="text-white">Routing</span> — OpenRouteService</li>
+        <li><span class="text-white">Wetter</span> — Open-Meteo</li>
+        <li><span class="text-white">Karte</span> — MapLibre GL + OpenStreetMap</li>
+        <li><span class="text-white">Framework</span> — SvelteKit 2 + Svelte 5</li>
+      </ul>
+    </div>
+
+    <div class="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-white/30">
+      <span>v{VERSION} · {BUILD_NAME}</span>
+      <span>souplesse Ultra</span>
+    </div>
+
+  </div>
 </BottomSheet>
