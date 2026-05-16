@@ -1337,11 +1337,13 @@
                 <Zap size={14} class="text-mdb-green" />
                 <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.gels}×</p>
                 <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Gels</p>
+                <p class="text-[9px] text-mdb-steel/70">alle 45 min</p>
               </div>
               <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5 {nutrition.bars === 0 ? 'opacity-30' : ''}">
                 <Cookie size={14} class="text-mdb-green" />
                 <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.bars}×</p>
                 <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Riegel</p>
+                <p class="text-[9px] text-mdb-steel/70">alle 90 min</p>
               </div>
             </div>
 
