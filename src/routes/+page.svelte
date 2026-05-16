@@ -288,10 +288,10 @@
   };
 
   const CHANGELOG: string[] = [
+    'souplesse Ultra — neuer Name, neues Icon. Die Sinuswelle steht für geschmeidige, fließende Bewegung.',
+    'Profil-Indikator — Avatar zeigt per grüner Border und Punkt ob ein Profil hinterlegt ist.',
     'Verpflegung — Wasser, Gels, Riegel und Kalorienbedarf direkt in den Ergebnissen geschätzt.',
     'Watch The Femmes — jedes Major Release trägt den Namen einer aktiven Profi-Fahrerin als Hommage an die Frauen des Radsports.',
-    'Distanzabweichung — +/− Badge zeigt wie weit die Route vom Zielwert abweicht.',
-    'FAQ im Footer — häufige Fragen zu Distanzabweichung, Routenfehler und Rückenwind-Score.',
   ];
 
   // --- State ---
@@ -369,7 +369,7 @@
         url.searchParams.set('addressdetails', '1');
         url.searchParams.set('accept-language', 'de');
         const res = await fetch(url.toString(), {
-          headers: { 'User-Agent': 'TrailBlazerUltra/1.4' }
+          headers: { 'User-Agent': 'SouplesseUltra/1.9' }
         });
         searchResults = await res.json();
       } catch { searchResults = []; }
@@ -414,14 +414,6 @@
   let compareOpen = $state(false);
   let userName = $state('');
   let nameInput = $state('');
-
-  function greeting() {
-    const h = new Date().getHours();
-    if (h >= 5  && h < 11) return 'Guten Morgen';
-    if (h >= 11 && h < 17) return 'Guten Tag';
-    if (h >= 17 && h < 22) return 'Guten Abend';
-    return 'Hallo';
-  }
 
   function saveSettings() {
     localStorage.setItem('tb_settings', JSON.stringify({
@@ -612,19 +604,19 @@
   async function shareRoute() {
     if (!route) return;
     const name = `Tour_${new Date().toISOString().slice(0, 10)}`;
-    const text = `${route.distanceKm} km · ${route.elevationGain} Hm · Start ${windDirectionLabel(route.startBearing)} · ${route.windScore}% Rückenwind — geplant mit TrailBlazer Ultra`;
+    const text = `${route.distanceKm} km · ${route.elevationGain} Hm · Start ${windDirectionLabel(route.startBearing)} · ${route.windScore}% Rückenwind — geplant mit souplesse Ultra`;
 
     try {
       if (navigator.canShare) {
         const gpx = generateGPX(route, name);
         const file = new File([gpx], `${name}.gpx`, { type: 'application/gpx+xml' });
         if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'TrailBlazer Ultra Route', text });
+          await navigator.share({ files: [file], title: 'souplesse Ultra Route', text });
           return;
         }
       }
       if (navigator.share) {
-        await navigator.share({ title: 'TrailBlazer Ultra Route', text });
+        await navigator.share({ title: 'souplesse Ultra Route', text });
         return;
       }
       await navigator.clipboard.writeText(text);
@@ -650,7 +642,7 @@
     ];
     if (msg.includes('GPS') || msg.includes('Standort')) return [
       'GPS-Zugriff im Browser erlauben.',
-      'Einstellungen → Datenschutz → Standort → TrailBlazer Ultra zulassen.',
+      'Einstellungen → Datenschutz → Standort → souplesse Ultra zulassen.',
     ];
     // No-route-found (most common)
     return [
@@ -714,7 +706,7 @@
 
 </script>
 
-<svelte:head><title>TrailBlazer Ultra</title></svelte:head>
+<svelte:head><title>souplesse Ultra</title></svelte:head>
 
 <div class="min-h-screen bg-mdb-surface font-sans">
 
@@ -784,29 +776,38 @@
             <g clip-path="url(#hdr-clip)">
               <rect width="512" height="512" fill="url(#hdr-bg)"/>
               <rect width="512" height="512" fill="url(#hdr-amb)"/>
-              <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64" fill-opacity="0.28" filter="url(#hdr-bloom)"/>
-              <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64"/>
+              <!-- zero line -->
+              <line x1="56" y1="256" x2="456" y2="256" stroke="#00ed64" stroke-width="10" stroke-opacity="0.5"/>
+              <!-- continuous sine wave -->
+              <path d="M 56 256 C 89 173 123 96 156 96 C 189 96 223 173 256 256 C 289 339 323 416 356 416 C 389 416 423 339 456 256" fill="none" stroke="#00ed64" stroke-width="28" stroke-linecap="round" stroke-opacity="0.35" filter="url(#hdr-bloom)"/>
+              <path d="M 56 256 C 89 173 123 96 156 96 C 189 96 223 173 256 256 C 289 339 323 416 356 416 C 389 416 423 339 456 256" fill="none" stroke="#00ed64" stroke-width="28" stroke-linecap="round"/>
               <rect width="512" height="512" fill="url(#hdr-glass)"/>
               <rect width="512" height="2.5" fill="white" fill-opacity="0.18"/>
             </g>
             <rect width="512" height="512" rx="115" ry="115" fill="none" stroke="white" stroke-opacity="0.10" stroke-width="3"/>
           </svg>
         </div>
-        <span class="text-base font-bold text-white tracking-tight">TrailBlazer <span class="text-mdb-green">Ultra</span></span>
+        <span class="text-base font-bold text-white tracking-tight">souplesse <span class="text-mdb-green">Ultra</span></span>
       </h1>
 
       <!-- Avatar -->
-      <button
-        onclick={() => profileOpen = true}
-        aria-label="Profil"
-        class="w-8 h-8 rounded-full border border-white/15 flex items-center justify-center active:opacity-70 transition-opacity flex-shrink-0 bg-white/[0.08]"
-      >
+      <div class="relative flex-shrink-0">
+        <button
+          onclick={() => profileOpen = true}
+          aria-label="Profil"
+          class="w-8 h-8 rounded-full border flex items-center justify-center active:opacity-70 transition-all duration-300 bg-white/[0.08]
+            {userName ? 'border-mdb-green shadow-[0_0_0_2px_rgba(0,237,100,0.15)]' : 'border-white/15'}"
+        >
+          {#if userName}
+            <UserRound size={15} color="white" strokeWidth={2} aria-hidden="true" />
+          {:else}
+            <UserRoundPlus size={15} color="white" strokeWidth={2} aria-hidden="true" />
+          {/if}
+        </button>
         {#if userName}
-          <UserRound size={15} color="white" strokeWidth={2} aria-hidden="true" />
-        {:else}
-          <UserRoundPlus size={15} color="white" strokeWidth={2} aria-hidden="true" />
+          <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-mdb-green border border-mdb-ink"></span>
         {/if}
-      </button>
+      </div>
 
     </div>
 
@@ -1279,9 +1280,6 @@
           </div>
         {/if}
 
-        </div>
-        {/key}
-
         <!-- Nutrition -->
         <div
           class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4 space-y-3"
@@ -1321,6 +1319,9 @@
           {/if}
         </div>
 
+        </div>
+        {/key}
+
         <!-- Share + GPX Export -->
         <div class="result-card grid grid-cols-2 gap-2" style="animation-delay: 400ms">
           <button
@@ -1345,7 +1346,7 @@
         <!-- Reset -->
         <button
           onclick={() => { allRoutes = []; routeIndex = 0; weather = null; tips = []; location = null; timePicked = false; sessionStorage.removeItem('tb_session'); }}
-          class="result-card w-full border border-mdb-hairline-strong text-mdb-steel rounded-full py-3.5 text-sm font-medium active:scale-[0.97] transition-transform"
+          class="result-card w-full border border-mdb-hairline-strong text-mdb-steel rounded-full py-4 text-sm font-medium active:scale-[0.97] transition-transform"
           style="animation-delay: 480ms"
         >
           Neue Route planen
@@ -1362,50 +1363,7 @@
     <div class="px-5 pt-5 pb-2">
       <!-- App name -->
       <div class="flex items-center justify-center mb-4">
-        <span class="text-base font-bold text-mdb-ink tracking-tight flex items-center gap-1.5">
-          TrailBlazer
-          <div style="
-            border-radius: 22.4%;
-            overflow: hidden;
-            width: 22px; height: 22px;
-            flex-shrink: 0;
-            box-shadow: 0 0 0 1.5px rgba(0,237,100,0.45), 0 2px 6px rgba(0,0,0,0.4);
-          ">
-            <svg width="22" height="22" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation">
-              <defs>
-                <radialGradient id="ftr-bg" cx="40%" cy="30%" r="70%">
-                  <stop offset="0%" stop-color="#013a2a"/>
-                  <stop offset="100%" stop-color="#001018"/>
-                </radialGradient>
-                <radialGradient id="ftr-amb" cx="50%" cy="20%" r="50%">
-                  <stop offset="0%" stop-color="#00ed64" stop-opacity="0.18"/>
-                  <stop offset="100%" stop-color="#00ed64" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="ftr-glass" cx="50%" cy="-10%" r="75%" gradientUnits="objectBoundingBox">
-                  <stop offset="0%"   stop-color="white" stop-opacity="0.24"/>
-                  <stop offset="55%"  stop-color="white" stop-opacity="0.04"/>
-                  <stop offset="100%" stop-color="white" stop-opacity="0"/>
-                </radialGradient>
-                <filter id="ftr-bloom" x="-25%" y="-25%" width="150%" height="150%">
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-                <clipPath id="ftr-clip">
-                  <rect width="512" height="512" rx="115" ry="115"/>
-                </clipPath>
-              </defs>
-              <g clip-path="url(#ftr-clip)">
-                <rect width="512" height="512" fill="url(#ftr-bg)"/>
-                <rect width="512" height="512" fill="url(#ftr-amb)"/>
-                <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64" fill-opacity="0.28" filter="url(#ftr-bloom)"/>
-                <path d="M280 88 L168 272 H240 L216 424 L344 240 H272 L280 88Z" fill="#00ed64"/>
-                <rect width="512" height="512" fill="url(#ftr-glass)"/>
-                <rect width="512" height="2.5" fill="white" fill-opacity="0.18"/>
-              </g>
-            </svg>
-          </div>
-          <span class="text-mdb-green-mid">Ultra</span>
-        </span>
+        <span class="text-base font-bold text-mdb-ink tracking-tight">souplesse <span class="text-mdb-green">Ultra</span></span>
       </div>
       <!-- Links + copyright -->
       <div class="flex items-center justify-center gap-3">
@@ -1752,7 +1710,7 @@
   <ul class="space-y-3 text-sm text-white/70">
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">1</span>
-      <p><strong class="text-white">Profil & Einstellungen</strong> — Avatar-Icon oben links: Name hinterlegen, Standard-Untergrund, Steigung, Distanz und Durchschnittsgeschwindigkeit festlegen.</p>
+      <p><strong class="text-white">Profil & Einstellungen</strong> — Avatar-Icon oben rechts: Name hinterlegen, Standard-Untergrund, Steigung, Distanz und Durchschnittsgeschwindigkeit festlegen.</p>
     </li>
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">2</span>
