@@ -1,4 +1,4 @@
-# TrailBlazer Ultra
+# souplesse Ultra
 
 Mobile-first PWA built with SvelteKit + Svelte 5, MapLibre GL, OpenRouteService, and Open-Meteo.
 
