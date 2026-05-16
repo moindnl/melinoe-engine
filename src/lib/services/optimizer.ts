@@ -15,13 +15,11 @@ export function generateRouteTips(weather: WeatherData, route: RouteResult): str
     tips.push(`Angenehme ${weather.temperature} °C — ideale Rennradbedingungen. Kurztrikot reicht.`);
   }
 
-  // Wind speed tip
+  // Wind speed tip (only when notable)
   if (weather.windSpeed > 35) {
     tips.push('Böiger Wind über 35 km/h: Aero-Position beibehalten, seitliche Windböen beim Überholen beachten.');
   } else if (weather.windSpeed > 20) {
     tips.push(`${weather.windSpeed} km/h Wind: Kettenring eine Stufe kleiner gegen den Wind, Energie für die Rückfahrt einteilen.`);
-  } else {
-    tips.push(`Leichter Wind (${weather.windSpeed} km/h) — gute Bedingungen für Intervalle oder Tempo-Einheiten.`);
   }
 
   // Gradient tip
