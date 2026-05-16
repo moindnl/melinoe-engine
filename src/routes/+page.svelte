@@ -316,7 +316,7 @@
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
   let startDir = $state<number | null>(null);
-  let dirConflict = $state(false);
+  const dirConflict = $derived(startDir !== null && weather !== null && angleDiff(startDir, weather.windDirection) > 90);
 
   const COMPASS_DIRS: ({ label: string; deg: number } | null)[] = [
     { label: 'NW', deg: 315 }, { label: 'N',  deg: 0   }, { label: 'NO', deg: 45  },
@@ -585,7 +585,6 @@
     loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
-      dirConflict = startDir !== null && angleDiff(startDir, w.windDirection) > 90;
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0, startDir ?? undefined);
       const validRoutes = routes.filter(isValidRoute);
       weather = w; allRoutes = validRoutes; routeIndex = 0;
@@ -607,7 +606,7 @@
     if (!location || !weather) return;
     loadingMore = true; calcError = '';
     try {
-      const offset = startDir !== null ? 0 : (bearingOffset + 22.5) % 360;
+      const offset = startDir !== null ? bearingOffset : (bearingOffset + 22.5) % 360;
       const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset, startDir ?? undefined);
       bearingOffset = offset;
       allRoutes = [...allRoutes, ...routes.filter(isValidRoute)];
@@ -1027,7 +1026,7 @@
       <div class="flex items-center justify-between mb-3">
         <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Startrichtung</div>
         {#if startDir !== null}
-          <button onclick={() => { startDir = null; dirConflict = false; }} class="text-xs text-mdb-steel underline underline-offset-2">Auswahl aufheben</button>
+          <button onclick={() => { startDir = null; }} class="text-xs text-mdb-steel underline underline-offset-2">Auswahl aufheben</button>
         {:else}
           <span class="text-[10px] font-medium text-mdb-muted uppercase tracking-wider">Optional</span>
         {/if}
