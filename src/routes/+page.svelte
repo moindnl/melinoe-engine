@@ -6,7 +6,7 @@
     Navigation, Loader, Wind, Download, Route, Share2, Utensils,
     Timer, MoveUp, Gauge, Lightbulb, Sun, Cloud, CloudRain, Clock, Droplet,
     UserRound, UserRoundPlus, X, Info, Check, ChevronLeft, ChevronRight, Plus, ArrowUp,
-    MapPin, Search, BarChart2, Star, Globe, WifiOff, Bookmark, Venus
+    MapPin, Search, BarChart2, Star, Globe, WifiOff, Bookmark, Venus, Zap, Flame, Cookie
   } from 'lucide-svelte';
   import { fetchWeather, windDirectionLabel, type WeatherData } from '$lib/services/weather';
   import { generateOptimalLoop, surfaceLabels, gradientLabels, gradientSubLabels, getOrsApiKey, saveOrsApiKey, type RouteResult, type SurfaceType, type GradientLevel } from '$lib/services/routing';
@@ -706,6 +706,19 @@
     ? Math.round((route.distanceKm - targetDistanceKm) * 10) / 10
     : 0);
 
+  const nutrition = $derived.by(() => {
+    if (!route) return null;
+    const hours = route.durationMin / 60;
+    const sf = surface === 'gravel' ? 1.15 : surface === 'mixed' ? 1.08 : 1.0;
+    const water = Math.round(hours * 0.65 * sf * 10) / 10;
+    const gels = route.durationMin >= 60 ? Math.floor(route.durationMin / 45) : 0;
+    const bars = route.durationMin >= 90 ? Math.floor(route.durationMin / 90) : 0;
+    const elevExtra = route.elevationGain * 0.1;
+    const kcalLow  = Math.round((hours * 500 * sf + elevExtra) / 100) * 100;
+    const kcalHigh = Math.round((hours * 750 * sf + elevExtra) / 100) * 100;
+    return { water, gels, bars, kcalLow, kcalHigh };
+  });
+
 </script>
 
 <svelte:head><title>TrailBlazer Ultra</title></svelte:head>
@@ -1288,23 +1301,44 @@
         </div>
         {/key}
 
-        <!-- Nutrition Tool -->
-        <a
-          href="https://bananasprocket.moindaniel.de/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="result-card flex items-center gap-4 bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4 active:opacity-80 transition-opacity"
+        <!-- Nutrition -->
+        <div
+          class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4 space-y-3"
           style="animation-delay: 360ms"
         >
-          <div class="w-10 h-10 rounded-mdb-lg bg-mdb-surface-feature border border-mdb-green/30 flex items-center justify-center flex-shrink-0">
-            <Utensils size={18} color="#00684a" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-mdb-ink">Nutrition planen</p>
-            <p class="text-xs text-mdb-steel mt-0.5">Verpflegung für diese Tour berechnen</p>
-          </div>
-          <ArrowUp size={14} color="#5c6c7a" style="transform: rotate(90deg); flex-shrink: 0" />
-        </a>
+          {#if nutrition}
+            <div class="flex items-center gap-2">
+              <Utensils size={15} class="text-mdb-green flex-shrink-0" />
+              <p class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Verpflegung</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5">
+                <Droplet size={14} class="text-mdb-green" />
+                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.water.toFixed(1)} L</p>
+                <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Wasser</p>
+              </div>
+              <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5 {nutrition.gels === 0 ? 'opacity-30' : ''}">
+                <Zap size={14} class="text-mdb-green" />
+                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.gels}</p>
+                <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Gels</p>
+              </div>
+              <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5 {nutrition.bars === 0 ? 'opacity-30' : ''}">
+                <Cookie size={14} class="text-mdb-green" />
+                <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.bars}</p>
+                <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Riegel</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2.5 bg-black/[0.04] rounded-xl px-3 py-2.5">
+              <Flame size={14} class="text-mdb-green flex-shrink-0" />
+              <div>
+                <p class="text-sm font-semibold text-mdb-ink">ca. {nutrition.kcalLow.toLocaleString('de')} – {nutrition.kcalHigh.toLocaleString('de')} kcal</p>
+                <p class="text-[10px] text-mdb-steel mt-0.5">Richtwerte · abhängig von Gewicht & Intensität</p>
+              </div>
+            </div>
+          {/if}
+        </div>
 
         <!-- Share + GPX Export -->
         <div class="result-card grid grid-cols-2 gap-2" style="animation-delay: 400ms">
