@@ -1026,9 +1026,9 @@
 
     <!-- ── Steigung ── -->
     <div class="bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4">
-      <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Max. Steigung</div>
+      <div class="text-xs font-semibold text-mdb-steel uppercase tracking-wider mb-3">Steigung</div>
       <div class="grid grid-cols-4 gap-1.5">
-        {#each (['any', 'flat', 'moderate', 'hilly'] as GradientLevel[]) as g}
+        {#each (['flat', 'moderate', 'hilly', 'any'] as GradientLevel[]) as g}
           {#key gradient === g}
             <button
               onclick={() => gradient = g}
