@@ -1331,6 +1331,7 @@
                 <Droplet size={14} class="text-mdb-green" />
                 <p class="text-base font-bold text-mdb-ink tabular-nums">{nutrition.water.toFixed(1)} L</p>
                 <p class="text-[10px] text-mdb-steel uppercase tracking-wide">Wasser</p>
+                <p class="text-[10px] text-mdb-steel">{(nutrition.water / (route.durationMin / 60)).toFixed(1)} L/h</p>
               </div>
               <div class="bg-black/[0.04] rounded-xl p-3 flex flex-col gap-1.5 {nutrition.gels === 0 ? 'opacity-30' : ''}">
                 <Zap size={14} class="text-mdb-green" />
