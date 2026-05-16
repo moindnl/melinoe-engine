@@ -289,6 +289,7 @@
   };
 
   const CHANGELOG: string[] = [
+    'Über die App — im Footer erklärt was souplesse bedeutet, wie die App funktioniert und wie mit deinen Daten umgegangen wird.',
     'souplesse Ultra — neuer Name, neues Icon. Die Sinuswelle steht für geschmeidige, fließende Bewegung.',
     'Profil-Indikator — Avatar zeigt per grüner Border und Punkt ob ein Profil hinterlegt ist.',
     'Verpflegung — Wasser, Gels, Riegel und Kalorienbedarf direkt in den Ergebnissen geschätzt.',
@@ -410,6 +411,7 @@
   let changelogOpen = $state(false);
   let riderOpen = $state(false);
   let roadmapOpen = $state(false);
+  let uberOpen = $state(false);
   let profileOpen = $state(false);
   let faqOpen = $state(false);
   let compareOpen = $state(false);
@@ -1391,6 +1393,11 @@
           onclick={() => roadmapOpen = true}
           class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
         >Roadmap</button>
+        <span class="text-mdb-hairline-strong text-xs">|</span>
+        <button
+          onclick={() => uberOpen = true}
+          class="text-xs text-mdb-steel hover:text-mdb-slate transition-colors"
+        >Über</button>
       </div>
       <div class="flex justify-center mt-3">
         <button
@@ -1735,4 +1742,29 @@
       <p><strong class="text-white">Teilen & GPX</strong> — Route teilen oder als GPX-Datei exportieren — direkt in Garmin, Wahoo oder Komoot importierbar.</p>
     </li>
   </ul>
+</BottomSheet>
+
+<BottomSheet bind:open={uberOpen} title="Über souplesse Ultra">
+  <ul class="space-y-3 text-sm text-white/70">
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">1</span>
+      <p><strong class="text-white">souplesse</strong> — Französischer Radsport-Begriff für die Leichtigkeit und Flüssigkeit der Bewegung. Wenn Kraft und Technik so verschmelzen, dass Fahren mühelos wirkt.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">2</span>
+      <p><strong class="text-white">Die App</strong> — Wind-optimierte Rennrad-Rundtouren. Vier Kandidaten werden anhand der aktuellen Windvorhersage bewertet, damit der Rückenwind auf dem Heimweg wartet.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">3</span>
+      <p><strong class="text-white">Datenschutz</strong> — Kein Account, keine Tracker, keine Werbung. Einstellungen bleiben lokal auf deinem Gerät — nichts wird an Dritte weitergegeben.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">4</span>
+      <p><strong class="text-white">Technologie</strong> — Routing via OpenRouteService, Wetter via Open-Meteo, Karte via MapLibre GL &amp; OpenStreetMap.</p>
+    </li>
+  </ul>
+  <div class="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/30">
+    <span>v{VERSION} · {BUILD_NAME}</span>
+    <span>souplesse Ultra</span>
+  </div>
 </BottomSheet>
