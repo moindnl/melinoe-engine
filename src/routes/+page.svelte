@@ -1165,7 +1165,7 @@
 
         <!-- Disclaimer -->
         <p class="text-xs text-mdb-steel text-center px-2">
-          Route basiert auf offenen Kartendaten. Sperrungen und Zugangsbeschränkungen vor der Fahrt prüfen.
+          Route auf Basis offener Kartendaten — Sperrungen bitte vor der Fahrt prüfen.
         </p>
 
         <!-- Load more routes -->
