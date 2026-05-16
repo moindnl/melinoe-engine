@@ -1317,11 +1317,11 @@
         {/if}
 
         <!-- Nutrition -->
+        {#if nutrition}
         <div
           class="result-card bg-mdb-canvas rounded-mdb-lg border border-mdb-hairline p-4 space-y-3"
           style="animation-delay: 360ms"
         >
-          {#if nutrition}
             <div class="flex items-center gap-2">
               <Utensils size={15} class="text-mdb-green flex-shrink-0" />
               <p class="text-xs font-semibold text-mdb-steel uppercase tracking-wider">Verpflegung</p>
@@ -1352,8 +1352,8 @@
                 <p class="text-[10px] text-mdb-steel mt-0.5">Richtwerte · abhängig von Gewicht & Intensität</p>
               </div>
             </div>
-          {/if}
         </div>
+        {/if}
 
         </div>
         {/key}
