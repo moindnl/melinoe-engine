@@ -316,6 +316,8 @@
   let startTime = $state(nowString());
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
+  let preferCycleway = $state(false);
+  $effect(() => { if (surface === 'gravel') preferCycleway = false; });
 
   const targetDistanceKm = $derived(
     planMode === 'distance'
@@ -575,7 +577,7 @@
     loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
-      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0, preferCycleway);
       const validRoutes = routes.filter(isValidRoute);
       weather = w; allRoutes = validRoutes; routeIndex = 0;
       tips = generateRouteTips(w, validRoutes[0]);
@@ -597,7 +599,7 @@
     loadingMore = true; calcError = '';
     try {
       const offset = (bearingOffset + 22.5) % 360;
-      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset, preferCycleway);
       bearingOffset = offset;
       allRoutes = [...allRoutes, ...routes.filter(isValidRoute)];
     } catch (e) {
@@ -988,6 +990,19 @@
           {/key}
         {/each}
       </div>
+      {#if surface !== 'gravel'}
+        <div class="flex items-center justify-between mt-4 pt-3 border-t border-mdb-hairline">
+          <span class="text-sm text-mdb-slate">Radwege bevorzugen</span>
+          <button
+            onclick={() => preferCycleway = !preferCycleway}
+            class="relative w-10 h-6 rounded-full transition-colors {preferCycleway ? 'bg-mdb-green' : 'bg-mdb-hairline-strong'}"
+            aria-pressed={preferCycleway}
+            aria-label="Radwege bevorzugen"
+          >
+            <span class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform {preferCycleway ? 'translate-x-4' : 'translate-x-0'}"></span>
+          </button>
+        </div>
+      {/if}
     </div>
 
     <!-- ── Steigung ── -->

@@ -141,6 +141,7 @@ async function fetchOrsViaWaypoints(
   profile: string,
   waypoints: RoutePoint[],
   gradient: GradientLevel,
+  preferCycleway = false,
 ): Promise<OrsRouteData> {
   const profilesToTry = profile === 'cycling-regular'
     ? ['cycling-regular', 'cycling-road']
@@ -150,6 +151,7 @@ async function fetchOrsViaWaypoints(
   const body: Record<string, unknown> = {
     coordinates: waypoints.map(p => [p.lon, p.lat]),
     elevation: true,
+    preference: preferCycleway ? 'recommended' : 'fastest',
   };
   if (difficulty !== null) {
     body.options = { profile_params: { weightings: { steepness_difficulty: difficulty } } };
@@ -241,6 +243,7 @@ async function generateWithOrs(
   surface: SurfaceType,
   gradient: GradientLevel,
   bearingOffset = 0,
+  preferCycleway = false,
 ): Promise<RouteResult[]> {
   if (!Number.isFinite(origin.lat) || !Number.isFinite(origin.lon)) {
     throw new Error(`Ungültige Koordinate: lon=${origin.lon}, lat=${origin.lat}`);
@@ -260,7 +263,7 @@ async function generateWithOrs(
   });
 
   const results = await Promise.allSettled(
-    candidateWaypoints.map(wps => fetchOrsViaWaypoints(apiKey, profile, wps, gradient))
+    candidateWaypoints.map(wps => fetchOrsViaWaypoints(apiKey, profile, wps, gradient, preferCycleway))
   );
 
   const rawRoutes: OrsRouteData[] = results
@@ -322,10 +325,11 @@ export async function generateOptimalLoop(
   surface: SurfaceType = 'road',
   gradient: GradientLevel = 'any',
   bearingOffset = 0,
+  preferCycleway = false,
 ): Promise<RouteResult[]> {
   const apiKey = getOrsApiKey();
   if (!apiKey) {
     throw new Error('Kein ORS-API-Key hinterlegt. Bitte in den Einstellungen eintragen.');
   }
-  return generateWithOrs(apiKey, origin, targetDistanceKm, speedKmh, windDirection, surface, gradient, bearingOffset);
+  return generateWithOrs(apiKey, origin, targetDistanceKm, speedKmh, windDirection, surface, gradient, bearingOffset, preferCycleway);
 }
