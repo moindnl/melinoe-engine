@@ -1,12 +1,44 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { Map as MaplibreMap } from 'maplibre-gl';
+  import type { Map as MaplibreMap, GeoJSONSource } from 'maplibre-gl';
   import type { RoutePoint } from '$lib/services/routing';
 
   let { coordinates, origin, lineColor = '#007AFF' }: { coordinates: RoutePoint[]; origin: RoutePoint; lineColor?: string } = $props();
 
   let mapContainer: HTMLDivElement;
   let map: MaplibreMap | null = null;
+  let styleLoaded = false;
+
+  function buildGeoJSON(coords: RoutePoint[]) {
+    return {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: coords.map(p => [p.lon, p.lat])
+      }
+    };
+  }
+
+  function fitRoute(coords: RoutePoint[]) {
+    if (!map) return;
+    const minLon = coords.reduce((m, p) => Math.min(m, p.lon), Infinity);
+    const maxLon = coords.reduce((m, p) => Math.max(m, p.lon), -Infinity);
+    const minLat = coords.reduce((m, p) => Math.min(m, p.lat), Infinity);
+    const maxLat = coords.reduce((m, p) => Math.max(m, p.lat), -Infinity);
+    map.fitBounds([[minLon, minLat], [maxLon, maxLat]], { padding: 40, duration: 600 });
+  }
+
+  // Update route line when coordinates change (route switch)
+  $effect(() => {
+    const coords = coordinates; // track reactively
+    if (!map || !styleLoaded) return;
+    const source = map.getSource('route') as GeoJSONSource | undefined;
+    if (source) {
+      source.setData(buildGeoJSON(coords));
+      fitRoute(coords);
+    }
+  });
 
   onMount(async () => {
     const ml = await import('maplibre-gl');
@@ -23,16 +55,9 @@
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     map.on('load', () => {
-      const geojson = {
-        type: 'Feature' as const,
-        properties: {},
-        geometry: {
-          type: 'LineString' as const,
-          coordinates: coordinates.map(p => [p.lon, p.lat])
-        }
-      };
+      styleLoaded = true;
 
-      map!.addSource('route', { type: 'geojson', data: geojson });
+      map!.addSource('route', { type: 'geojson', data: buildGeoJSON(coordinates) });
       map!.addLayer({
         id: 'route-line',
         type: 'line',
@@ -47,20 +72,14 @@
         .setLngLat([origin.lon, origin.lat])
         .addTo(map!);
 
-      const minLon = coordinates.reduce((m, p) => Math.min(m, p.lon), Infinity);
-      const maxLon = coordinates.reduce((m, p) => Math.max(m, p.lon), -Infinity);
-      const minLat = coordinates.reduce((m, p) => Math.min(m, p.lat), Infinity);
-      const maxLat = coordinates.reduce((m, p) => Math.max(m, p.lat), -Infinity);
-      map!.fitBounds(
-        [[minLon, minLat], [maxLon, maxLat]],
-        { padding: 40, duration: 800 }
-      );
-
+      fitRoute(coordinates);
     });
   });
 
   onDestroy(() => {
+    styleLoaded = false;
     map?.remove();
+    map = null;
   });
 </script>
 

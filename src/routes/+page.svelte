@@ -1129,12 +1129,9 @@
 
         <!-- Map -->
         {#if location}
-          {#key routeIndex}
-            <div id="result-map" class="result-card rounded-mdb-lg overflow-hidden border border-mdb-hairline" style="height: 42vw; min-height: 200px; max-height: 300px; animation-delay: 0ms"
-              transition:fade={{ duration: 200 }}>
-              <MapView coordinates={route.coordinates} origin={location} lineColor="#00ed64" />
-            </div>
-          {/key}
+          <div id="result-map" class="rounded-mdb-lg overflow-hidden border border-mdb-hairline" style="height: 42vw; min-height: 200px; max-height: 300px;">
+            <MapView coordinates={route.coordinates} origin={location} lineColor="#00ed64" />
+          </div>
         {/if}
 
         <!-- Route navigation -->
