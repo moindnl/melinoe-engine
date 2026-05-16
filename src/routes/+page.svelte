@@ -300,6 +300,8 @@
   type PlanMode = 'distance' | 'duration';
 
   let userSpeeds = $state<Record<SurfaceType, number>>({ road: 28, mixed: 24, gravel: 20 });
+  const DEFAULT_SPEEDS: Record<SurfaceType, number> = { road: 28, mixed: 24, gravel: 20 };
+  const usingDefaultSpeed = $derived(userSpeeds[surface] === DEFAULT_SPEEDS[surface]);
   let defaultSurface = $state<SurfaceType>('road');
   let defaultGradient = $state<GradientLevel>('any');
   let defaultDistance = $state(60);
@@ -948,13 +950,22 @@
             {/key}
           {/each}
         </div>
-        <span class="text-2xl font-semibold text-mdb-ink">
-          {#if planMode === 'distance'}
-            {distanceKm}<span class="text-sm font-normal text-mdb-steel ml-1">km</span>
-          {:else}
-            {fmt(durationMin)}
-          {/if}
-        </span>
+        <div class="text-right">
+          <span class="text-2xl font-semibold text-mdb-ink">
+            {#if planMode === 'distance'}
+              {distanceKm}<span class="text-sm font-normal text-mdb-steel ml-1">km</span>
+            {:else}
+              {fmt(durationMin)}
+            {/if}
+          </span>
+          <p class="text-xs text-mdb-steel mt-0.5">
+            {#if planMode === 'distance'}
+              ca. {fmt(Math.round(distanceKm / userSpeeds[surface] * 60))}
+            {:else}
+              ca. {targetDistanceKm} km
+            {/if}
+          </p>
+        </div>
       </div>
 
       {#if planMode === 'distance'}
@@ -969,6 +980,12 @@
           <span>30 min</span>
           <span>6 h</span>
         </div>
+      {/if}
+      {#if usingDefaultSpeed}
+        <p class="text-xs text-mdb-steel mt-3">
+          Geschätzte Werte basieren auf {userSpeeds[surface]} km/h (Standard) ·
+          <button onclick={() => profileOpen = true} class="underline text-mdb-steel active:text-mdb-ink">Profil anpassen</button>
+        </p>
       {/if}
     </div>
 
