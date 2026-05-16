@@ -316,6 +316,8 @@
   let startTime = $state(nowString());
   let surface = $state<SurfaceType>('road');
   let gradient = $state<GradientLevel>('any');
+  let cyclewayPref = $state<Record<string, boolean>>({ road: false, mixed: false });
+  const preferCycleway = $derived(surface !== 'gravel' ? (cyclewayPref[surface] ?? false) : false);
 
   const targetDistanceKm = $derived(
     planMode === 'distance'
@@ -431,7 +433,7 @@
     try {
       sessionStorage.setItem('tb_session', JSON.stringify({
         allRoutes, weather, location, routeIndex,
-        surface, gradient, distanceKm, durationMin, planMode, startTime, timePicked,
+        surface, gradient, distanceKm, durationMin, planMode, startTime, timePicked, cyclewayPref,
       }));
     } catch { /* ignore quota errors */ }
   }
@@ -482,6 +484,7 @@
           planMode = s.planMode ?? planMode;
           startTime = s.startTime ?? startTime;
           timePicked = s.timePicked ?? false;
+          if (s.cyclewayPref && typeof s.cyclewayPref === 'object') cyclewayPref = s.cyclewayPref;
           tips = generateRouteTips(s.weather, s.allRoutes[s.routeIndex ?? 0]);
         }
       } catch { /* ignore corrupt session */ }
@@ -575,7 +578,7 @@
     loading = true; allRoutes = []; routeIndex = 0; bearingOffset = 0; weather = null; tips = []; calcError = '';
     try {
       const w = await fetchWeather(location.lat, location.lon, new Date(startTime));
-      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], w.windDirection, surface, gradient, 0, preferCycleway);
       const validRoutes = routes.filter(isValidRoute);
       weather = w; allRoutes = validRoutes; routeIndex = 0;
       tips = generateRouteTips(w, validRoutes[0]);
@@ -597,7 +600,7 @@
     loadingMore = true; calcError = '';
     try {
       const offset = (bearingOffset + 22.5) % 360;
-      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset);
+      const routes = await generateOptimalLoop(location, targetDistanceKm, userSpeeds[surface], weather.windDirection, surface, gradient, offset, preferCycleway);
       bearingOffset = offset;
       allRoutes = [...allRoutes, ...routes.filter(isValidRoute)];
     } catch (e) {
@@ -988,6 +991,19 @@
           {/key}
         {/each}
       </div>
+      {#if surface !== 'gravel'}
+        <div class="flex items-center justify-between mt-4 pt-3 border-t border-mdb-hairline">
+          <span class="text-sm text-mdb-slate">Radwege nutzen</span>
+          <button
+            onclick={() => cyclewayPref[surface] = !cyclewayPref[surface]}
+            class="relative w-10 h-6 rounded-full flex-shrink-0 ml-3 transition-colors {preferCycleway ? 'bg-mdb-green' : 'bg-mdb-hairline-strong'}"
+            aria-pressed={preferCycleway}
+            aria-label="Radwege nutzen"
+          >
+            <span class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform {preferCycleway ? 'translate-x-4' : 'translate-x-0'}"></span>
+          </button>
+        </div>
+      {/if}
     </div>
 
     <!-- ── Steigung ── -->
@@ -1147,6 +1163,11 @@
             <ChevronRight size={16} />
           </button>
         </div>
+
+        <!-- Disclaimer -->
+        <p class="text-xs text-mdb-steel text-center px-2">
+          Route auf Basis offener Kartendaten — Sperrungen bitte vor der Fahrt prüfen.
+        </p>
 
         <!-- Load more routes -->
         <button
@@ -1711,6 +1732,10 @@
     <li class="flex gap-3 items-start">
       <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
       <p><strong class="text-white">Was bedeutet der Rückenwind-%?</strong> — Anteil der geschätzten Rückweg-Zeit mit günstigem Wind (±60°). 100 % = voller Rückenwind nach Hause.</p>
+    </li>
+    <li class="flex gap-3 items-start">
+      <span class="w-5 h-5 rounded-full bg-mdb-green flex-shrink-0 flex items-center justify-center text-mdb-ink text-xs font-bold">?</span>
+      <p><strong class="text-white">Sind alle Wege befahrbar?</strong> — Routen basieren auf OpenStreetMap-Daten. Aktuelle Sperrungen können nicht ausgeschlossen werden — Strecke vor der Fahrt prüfen.</p>
     </li>
   </ul>
 </BottomSheet>
