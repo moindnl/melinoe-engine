@@ -288,17 +288,10 @@
   };
 
   const CHANGELOG: string[] = [
+    'Verpflegung — Wasser, Gels, Riegel und Kalorienbedarf direkt in den Ergebnissen geschätzt.',
     'Watch The Femmes — jedes Major Release trägt den Namen einer aktiven Profi-Fahrerin als Hommage an die Frauen des Radsports.',
-    'Distanzabweichung sichtbar — kleines +/− Badge zeigt wie weit die Route vom Zielwert abweicht.',
+    'Distanzabweichung — +/− Badge zeigt wie weit die Route vom Zielwert abweicht.',
     'FAQ im Footer — häufige Fragen zu Distanzabweichung, Routenfehler und Rückenwind-Score.',
-    'Scroll-Verhalten verbessert — nach Berechnung springt die Ansicht direkt zur Karte statt zu den Stats.',
-    'Formular-State bleibt nach App-Neustart erhalten — Distanz, Untergrund, Steigung werden lokal gespeichert.',
-    'Install-Hinweis wird 30 Tage ausgeblendet nach Ablehnen — erscheint nicht mehr bei jedem Start.',
-    'Routenvergleich: alle berechneten Routen sortiert nach Rückenwind — Empfehlung auf einen Blick.',
-    'Adresssuche: Startpunkt per Adresseingabe setzen — als Alternative zu GPS.',
-    'Wetter und Wind werden jetzt für die geplante Startzeit abgerufen — nicht für den aktuellen Moment.',
-    'Roadmap: geplante Features direkt in der App einsehbar (Footer → Roadmap).',
-    'Barrierefreiheit: Kontraste und Schriftgrößen auf WCAG 2.1 AA angehoben.',
   ];
 
   // --- State ---
